@@ -1,0 +1,228 @@
+/* 1. RESET & ROOT */
+* {
+  box-sizing: border-box;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #f7f7f7;
+  color: #000;
+  font-family: 'Poppins', sans-serif;
+}
+body.dark-mode {
+  background: #121212 !important;
+  color: #ddd;
+}
+
+/* 2. CONTAINER PADDING FOR EXPORT */
+#infograph-container {
+  background-color: #f7f7f7;
+  padding: 20px;
+}
+body.dark-mode #infograph-container {
+  background-color: #1a1a1a;
+}
+
+/* 3. PAGE TITLE */
+.page-title {
+  font-family: 'Montserrat', sans-serif;
+  color: #009879;
+  text-align: center;
+  margin: 20px 0 10px;
+  font-size: 1.5rem;
+}
+body.dark-mode .page-title {
+  color: #4fd6a5;
+}
+
+/* 4. CONTROLS BAR */
+#container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+#container input,
+#container button {
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: none;
+}
+#color-picker {
+  width: 50px;
+  height: 50px;
+}
+#clear-button,
+#dark-mode-toggle,
+#save-button {
+  background: #fff;
+  color: #000;
+}
+#clear-button:hover,
+#dark-mode-toggle:hover,
+#save-button:hover {
+  background: #eaeaea;
+}
+body.dark-mode #clear-button,
+body.dark-mode #dark-mode-toggle,
+body.dark-mode #save-button {
+  background: #444;
+  color: #ddd;
+}
+body.dark-mode #clear-button:hover,
+body.dark-mode #dark-mode-toggle:hover,
+body.dark-mode #save-button:hover {
+  background: #555;
+}
+
+/* 5. SLANTED FORM (RESPONSIVE GRID) */
+.styled-table {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 16px 30px;
+  margin: 0 auto 30px;
+  padding: 16px;
+  background: #fff;
+  max-width: 550px;
+  width: 90%;
+  transform: perspective(75em) rotateX(18deg);
+  box-shadow:
+    rgba(22,31,39,0.42) 0px 60px 123px -25px,
+    rgba(19,26,32,0.08) 0px 35px 75px -35px;
+  border-radius: 10px;
+  border: 2px solid #d5dce2;
+}
+@media (max-width: 600px) {
+  .styled-table {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .styled-table td {
+    text-align: center;
+  }
+  .styled-table label {
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .styled-table input[type="text"] {
+    width: 80%;
+    margin: 0 auto;
+  }
+}
+.styled-table td {
+  display: flex;
+  flex-direction: column;
+}
+.styled-table label {
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  color: #000;
+}
+.styled-table input[type="text"] {
+  padding: 8px;
+  font-size: 16px;
+  border: 2px solid #009879;
+  border-radius: 4px;
+  background: #fff;
+  color: #000;
+}
+body.dark-mode .styled-table {
+  background: #333;
+  border-color: #555;
+}
+body.dark-mode .styled-table label {
+  color: #ddd;
+}
+body.dark-mode .styled-table input[type="text"] {
+  background: #444;
+  border-color: #4fd6a5;
+  color: #ddd;
+}
+
+/* 6. BOX GRID (2‑COLUMN & AUTO‑FIT) */
+#box-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
+  column-gap: 40px;
+  row-gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 10px;
+}
+.box-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.category {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #009879;
+  margin-bottom: 8px;
+  text-align: center;
+}
+body.dark-mode .category {
+  color: #4fd6a5;
+}
+.boxes {
+  display: grid;
+  grid-template-columns: repeat(10,1fr);
+  gap: 6px;
+  width: 100%;
+}
+
+/* 7. NORMAL BOXES */
+.box {
+  aspect-ratio: 1/1;
+  width: 100%;
+  max-width: 50px;
+  min-width: 30px;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 8px;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  touch-action: none;
+}
+.box:hover {
+  box-shadow:
+    0 14px 28px rgba(0,0,0,0.25),
+    0 10px 10px rgba(0,0,0,0.22);
+}
+body.dark-mode .box {
+  background: #444;
+  border-color: #ccc;
+}
+
+/* 8. BONUS BOXES */
+.bonus-box {
+  aspect-ratio: 1/1;
+  width: 100%;
+  max-width: 50px;
+  min-width: 30px;
+  background: #dedede;
+  border: 3px solid blue;
+  border-radius: 8px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+body.dark-mode .bonus-box {
+  background: #555;
+}
+
+/* 9. PULSE ANIMATION */
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50%      { transform: scale(1.05); }
+}
+.bonus-box.maxed {
+  animation: pulse 1s ease-in-out infinite;
+  border-color: gold;
+  box-shadow: 0 0 8px rgba(255,215,0,0.7);
+}
