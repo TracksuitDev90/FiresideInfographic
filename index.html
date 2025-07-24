@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Fireside Infograph</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h2 class="page-title">FIRESIDE INFOGRAPH.</h2>
+
+  <div id="infograph-container">
+    <!-- 1) INPUT FIELDS -->
+    <div id="input-fields">
+      <table class="styled-table">
+        <tbody>
+          <tr>
+            <td><label for="age">Your Age:</label></td>
+            <td><input type="text" id="age" /></td>
+            <td><label for="biological-sex">Gender:</label></td>
+            <td><input type="text" id="biological-sex" /></td>
+          </tr>
+          <tr>
+            <td><label for="sexual-orientation">Sexual Orientation:</label></td>
+            <td><input type="text" id="sexual-orientation" /></td>
+            <td><label for="virgin">Virgin:</label></td>
+            <td><input type="text" id="virgin" /></td>
+          </tr>
+          <tr>
+            <td><label for="mbti">Personality Type:</label></td>
+            <td><input type="text" id="mbti" /></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 2) CONTROLS -->
+    <div id="container">
+      <input  id="color-picker"    type="color"    title="Pick fill color" />
+      <button id="clear-button"     type="button">Clear</button>
+      <button id="dark-mode-toggle" type="button">Dark Mode</button>
+      <button id="save-button"      type="button">Save as Image</button>
+    </div>
+
+    <!-- 3) BOX GRID -->
+    <div id="box-container">
+      <!-- Intelligence -->
+      <div class="box-row">
+        <h3 class="category">Intelligence</h3>
+        <div class="boxes">
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box bonus-box"></div>
+        </div>
+      </div>
+      <!-- Wealth -->
+      <div class="box-row">
+        <h3 class="category">Wealth</h3>
+        <div class="boxes">
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box bonus-box"></div>
+        </div>
+      </div>
+      <!-- Sex Life -->
+      <div class="box-row">
+        <h3 class="category">Sex Life</h3>
+        <div class="boxes">
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box bonus-box"></div>
+        </div>
+      </div>
+      <!-- Physical Appearance -->
+      <div class="box-row">
+        <h3 class="category">Physical Appearance</h3>
+        <div class="boxes">
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box bonus-box"></div>
+        </div>
+      </div>
+      <!-- Personality -->
+      <div class="box-row">
+        <h3 class="category">Personality</h3>
+        <div class="boxes">
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box bonus-box"></div>
+        </div>
+      </div>
+      <!-- Confidence -->
+      <div class="box-row">
+        <h3 class="category">Confidence</h3>
+        <div class="boxes">
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box bonus-box"></div>
+        </div>
+      </div>
+      <!-- Social Life -->
+      <div class="box-row">
+        <h3 class="category">Social Life</h3>
+        <div class="boxes">
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box bonus-box"></div>
+        </div>
+      </div>
+      <!-- Health / Fitness -->
+      <div class="box-row">
+        <h3 class="category">Health / Fitness</h3>
+        <div class="boxes">
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box bonus-box"></div>
+        </div>
+      </div>
+      <!-- Happiness -->
+      <div class="box-row">
+        <h3 class="category">Happiness</h3>
+        <div class="boxes">
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box bonus-box"></div>
+        </div>
+      </div>
+      <!-- Cringiness -->
+      <div class="box-row">
+        <h3 class="category">Cringiness</h3>
+        <div class="boxes">
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box"></div><div class="box"></div><div class="box"></div>
+          <div class="box bonus-box"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- html2canvas for Save as Image -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
