@@ -5,7 +5,7 @@ window.addEventListener('DOMContentLoaded', () => {
     '#4D96FF', '#FF9CEE', '#FDFFB6'
   ];
 
-  // Pick random bright color & darken by 50
+  // pick a random bright color & darken by 50 for contrast
   const light = brightColors[Math.floor(Math.random() * brightColors.length)];
   const dark = (() => {
     const amt = 50;
@@ -23,7 +23,6 @@ window.addEventListener('DOMContentLoaded', () => {
   styledTable.style.setProperty('--slanted-bg-light', light);
   styledTable.style.setProperty('--slanted-bg-dark', dark);
 
-  // Core UI hooks
   const colorPicker    = document.getElementById("color-picker");
   const clearButton    = document.getElementById("clear-button");
   const darkModeToggle = document.getElementById("dark-mode-toggle");
@@ -36,14 +35,12 @@ window.addEventListener('DOMContentLoaded', () => {
       startX        = 0,
       currentColor  = colorPicker.value;
 
-  // Enable Save only when all inputs filled
   function checkSave() {
     saveButton.disabled = !inputs.every(i => i.value.trim());
   }
   inputs.forEach(i => i.addEventListener("input", checkSave));
   checkSave();
 
-  // Clear all fills/maxes
   clearButton.addEventListener("click", e => {
     e.preventDefault();
     boxes.forEach(b => b.style.backgroundColor = "");
@@ -53,7 +50,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Paint logic
   function paintMove(evt) {
     if (!isPointerDown) return;
     evt.target.style.backgroundColor =
@@ -78,39 +74,36 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Bonus toggle
   bonusBoxes.forEach(b => b.addEventListener("click", () => {
     b.classList.toggle("maxed");
   }));
 
-  // Dark mode toggle
   darkModeToggle.addEventListener("click", () => {
     const dm = document.body.classList.toggle("dark-mode");
     darkModeToggle.setAttribute("aria-pressed", dm);
   });
 
-  // Save as image (includes scroll offsets for mobile)
   saveButton.addEventListener("click", () => {
     if (saveButton.disabled) {
       alert("Please complete before saving");
       return;
     }
-    html2canvas(document.getElementById("infograph-container"), {
-      scale: 2,
-      useCORS: true,
-      scrollX: -window.scrollX,
-      scrollY: -window.scrollY
-    })
-    .then(canvas => {
-      const link = document.createElement("a");
-      link.download = "fireside-infograph.png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    })
-    .catch(console.error);
+    // wait for fonts before snapshot
+    document.fonts.ready.then(() => {
+      html2canvas(document.getElementById("infograph-container"), {
+        scale: 2,
+        useCORS: true
+      })
+      .then(canvas => {
+        const link = document.createElement("a");
+        link.download = "fireside-infograph.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      })
+      .catch(console.error);
+    });
   });
 
-  // Update currentColor
   colorPicker.addEventListener("input", e => {
     currentColor = e.target.value;
   });
