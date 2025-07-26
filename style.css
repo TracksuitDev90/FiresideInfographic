@@ -2,7 +2,9 @@
 html, *, *::before, *::after {
   box-sizing: border-box;
 }
-html { height: 100%; }
+html {
+  height: 100%;
+}
 
 body {
   margin: 0;
@@ -51,7 +53,7 @@ body.dark-mode .page-title {
   margin-bottom: 30px;
 }
 
-/* color picker */
+/* Color Picker */
 #container input#color-picker {
   width: 50px;
   height: 50px;
@@ -60,7 +62,7 @@ body.dark-mode .page-title {
   cursor: pointer;
 }
 
-/* buttons */
+/* Buttons */
 #container button {
   display: inline-flex;
   align-items: center;
@@ -73,33 +75,38 @@ body.dark-mode .page-title {
   background: linear-gradient(135deg, #4fd6a5, #009879);
   color: #fff;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  transition: transform 0.1s ease, box-shadow 0.2s ease;
+  transition: box-shadow 0.2s;
   overflow: visible;
+  vertical-align: middle;
 }
 #container button:hover {
-  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 #container button:active {
-  transform: translateY(0);
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 body.dark-mode #container button {
   background: linear-gradient(135deg, #4fd6a5, #2e7e66);
 }
 
-/* icon sizing */
+/* Disabled Save */
+#save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* SVG Icon sizing */
 #container button .icon {
   width: 1.2em;
   height: 1.2em;
+  max-height: 1em;
+  max-width: 1.2em;
   flex-shrink: 0;
 }
 
-/* toggle icons & labels */
-.icon-sun,
-.label-sun {
-  display: none;
-}
+/* Toggle icons & labels */
+.icon-sun, .label-sun { display: none; }
 body.dark-mode .icon-sun,
 body.dark-mode .label-sun {
   display: inline-block;
@@ -162,6 +169,19 @@ body.dark-mode .styled-table input[type="text"] {
   background: #444;
   border-color: #4fd6a5;
   color: #ddd;
+}
+
+/* Aspect‑ratio fallback */
+@supports not (aspect-ratio: 1/1) {
+  .box, .bonus-box {
+    width: 100%;
+    padding-top: 100%;
+    position: relative;
+  }
+  .box > *, .bonus-box > * {
+    position: absolute;
+    inset: 0;
+  }
 }
 
 /* 6–9. BOX GRID & BOXES (unchanged) */
