@@ -1,17 +1,25 @@
+/* style.css */
+
 /* 1. RESET & ROOT */
-* {
+html {
   box-sizing: border-box;
+  height: 100%;
 }
-html, body {
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+body {
   margin: 0;
   padding: 0;
-  height: 100%;
+  min-height: 100vh;
   background: #f7f7f7;
   color: #000;
   font-family: 'Poppins', sans-serif;
+  transition: background-color 0.3s, color 0.3s;
 }
 body.dark-mode {
-  background: #121212 !important;
+  background: #121212;
   color: #ddd;
 }
 
@@ -19,6 +27,7 @@ body.dark-mode {
 #infograph-container {
   background-color: #f7f7f7;
   padding: 20px;
+  transition: background-color 0.3s;
 }
 body.dark-mode #infograph-container {
   background-color: #1a1a1a;
@@ -31,6 +40,7 @@ body.dark-mode #infograph-container {
   text-align: center;
   margin: 20px 0 10px;
   font-size: 1.5rem;
+  transition: color 0.3s;
 }
 body.dark-mode .page-title {
   color: #4fd6a5;
@@ -45,39 +55,47 @@ body.dark-mode .page-title {
   gap: 10px;
   margin-bottom: 30px;
 }
-#container input,
-#container button {
+
+/* Color Picker */
+#container input#color-picker {
   cursor: pointer;
-  font-size: 14px;
-  padding: 8px 12px;
-  border-radius: 5px;
-  border: none;
-}
-#color-picker {
   width: 50px;
   height: 50px;
+  border: none;
+  background: none;
 }
-#clear-button,
-#dark-mode-toggle,
-#save-button {
-  background: #fff;
-  color: #000;
+
+/* Buttons */
+#container button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4fd6a5, #009879);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+  overflow: visible;
 }
-#clear-button:hover,
-#dark-mode-toggle:hover,
-#save-button:hover {
-  background: #eaeaea;
+#container button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
-body.dark-mode #clear-button,
-body.dark-mode #dark-mode-toggle,
-body.dark-mode #save-button {
-  background: #444;
-  color: #ddd;
+#container button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
-body.dark-mode #clear-button:hover,
-body.dark-mode #dark-mode-toggle:hover,
-body.dark-mode #save-button:hover {
-  background: #555;
+body.dark-mode #container button {
+  background: linear-gradient(135deg, #4fd6a5, #2e7e66);
+}
+#container button svg {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
 }
 
 /* 5. SLANTED FORM (RESPONSIVE GRID) */
@@ -96,34 +114,27 @@ body.dark-mode #save-button:hover {
     rgba(19,26,32,0.08) 0px 35px 75px -35px;
   border-radius: 10px;
   border: 2px solid #d5dce2;
+  transition: background-color 0.2s, border-color 0.2s;
 }
 @media (max-width: 600px) {
   .styled-table {
     grid-template-columns: 1fr;
-    justify-items: center;
-  }
-  .styled-table td {
-    text-align: center;
-  }
-  .styled-table label {
-    margin-bottom: 6px;
-    text-align: center;
-  }
-  .styled-table input[type="text"] {
-    width: 80%;
-    margin: 0 auto;
   }
 }
-.styled-table td {
+
+/* Field styling */
+.styled-table .field {
   display: flex;
   flex-direction: column;
 }
 .styled-table label {
   font-weight: bold;
-  font-size: 18px;
   margin-bottom: 6px;
-  white-space: nowrap;
   color: #000;
+  transition: color 0.2s;
+}
+body.dark-mode .styled-table label {
+  color: #ddd;
 }
 .styled-table input[type="text"] {
   padding: 8px;
@@ -132,13 +143,7 @@ body.dark-mode #save-button:hover {
   border-radius: 4px;
   background: #fff;
   color: #000;
-}
-body.dark-mode .styled-table {
-  background: #333;
-  border-color: #555;
-}
-body.dark-mode .styled-table label {
-  color: #ddd;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 body.dark-mode .styled-table input[type="text"] {
   background: #444;
@@ -146,7 +151,7 @@ body.dark-mode .styled-table input[type="text"] {
   color: #ddd;
 }
 
-/* 6. BOX GRID (2‑COLUMN & AUTO‑FIT) */
+/* 6. BOX GRID */
 #box-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
@@ -168,6 +173,7 @@ body.dark-mode .styled-table input[type="text"] {
   color: #009879;
   margin-bottom: 8px;
   text-align: center;
+  transition: color 0.3s;
 }
 body.dark-mode .category {
   color: #4fd6a5;
