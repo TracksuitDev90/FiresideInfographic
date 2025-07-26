@@ -6,6 +6,7 @@ html {
   height: 100%;
 }
 
+/* 2. BODY & DARK MODE */
 body {
   margin: 0;
   padding: 0;
@@ -20,64 +21,75 @@ body.dark-mode {
   color: #ddd;
 }
 
-/* 2. CONTAINER PADDING FOR EXPORT */
+/* 3. INFOPGRAPH CONTAINER */
 #infograph-container {
-  background: #f7f7f7;
+  max-width: 900px;
+  margin: 0 auto;
   padding: 20px;
+  background-color: #f7f7f7;
   transition: background-color 0.3s;
 }
 body.dark-mode #infograph-container {
-  background: #1a1a1a;
+  background-color: #121212;
 }
 
-/* 3. PAGE TITLE */
+/* 4. PAGE TITLE */
 .page-title {
   font-family: 'Montserrat', sans-serif;
+  font-weight: bold;
   color: #009879;
   text-align: center;
-  margin: 20px 0 10px;
-  font-size: 1.5rem;
+  margin: 40px 0 30px;
+  font-size: 2rem;
   transition: color 0.3s;
 }
 body.dark-mode .page-title {
   color: #4fd6a5;
 }
 
-/* 4. CONTROLS BAR */
+/* 5. CONTROLS BAR */
 #container {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: 10px;
-  margin-bottom: 30px;
+  margin: 20px 0 30px;
 }
 
-/* Color Picker */
+/* 5a. Color Picker (highlighted circular) */
 #container input#color-picker {
   width: 50px;
   height: 50px;
-  border: none;
+  border: 3px solid #009879;
+  border-radius: 50%;
+  padding: 2px;
   background: none;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: box-shadow 0.2s, border-color 0.3s;
+}
+#container input#color-picker:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+body.dark-mode #container input#color-picker {
+  border-color: #4fd6a5;
 }
 
-/* Buttons */
+/* 5b. Buttons */
 #container button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  line-height: 1;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 600;
   border: none;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #4fd6a5, #009879);
+  border-radius: 20px;
+  background: linear-gradient(135deg,#4fd6a5,#009879);
   color: #fff;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   transition: box-shadow 0.2s;
-  overflow: visible;
-  vertical-align: middle;
 }
 #container button:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -86,26 +98,25 @@ body.dark-mode .page-title {
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 body.dark-mode #container button {
-  background: linear-gradient(135deg, #4fd6a5, #2e7e66);
+  background: linear-gradient(135deg,#4fd6a5,#2e7e66);
 }
 
-/* Disabled Save */
+/* 5c. Disabled Save */
 #save-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
 }
 
-/* SVG Icon sizing */
+/* 5d. SVG icon sizing */
 #container button .icon {
   width: 1.2em;
   height: 1.2em;
   max-height: 1em;
-  max-width: 1.2em;
   flex-shrink: 0;
 }
 
-/* Toggle icons & labels */
+/* 5e. Dark/Light toggle icons & labels */
 .icon-sun, .label-sun { display: none; }
 body.dark-mode .icon-sun,
 body.dark-mode .label-sun {
@@ -116,22 +127,47 @@ body.dark-mode .label-moon {
   display: none;
 }
 
-/* 5. SLANTED FORM (RESPONSIVE GRID) */
+/* 5f. Tooltip */
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+.tooltip-wrapper .tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  text-align: center;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.tooltip-wrapper:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* 6. SLANTED FORM */
 .styled-table {
+  width: 100%;
   display: grid;
   grid-template-columns: repeat(2,1fr);
   gap: 16px 30px;
   margin: 0 auto 30px;
   padding: 16px;
-  background: #fff;
-  max-width: 550px;
-  width: 90%;
   transform: perspective(75em) rotateX(18deg);
+  border-radius: 10px;
+  border: 2px solid #d5dce2;
+  background-color: var(--slanted-bg-light, #fff);
   box-shadow:
     rgba(22,31,39,0.42) 0px 60px 123px -25px,
     rgba(19,26,32,0.08) 0px 35px 75px -35px;
-  border-radius: 10px;
-  border: 2px solid #d5dce2;
   transition: background-color 0.3s, border-color 0.3s;
 }
 @media (max-width: 600px) {
@@ -140,9 +176,11 @@ body.dark-mode .label-moon {
   }
 }
 body.dark-mode .styled-table {
-  background: #333;
   border-color: #555;
+  background-color: var(--slanted-bg-dark, #333);
 }
+
+/* 6a. Form Fields */
 .styled-table .field {
   display: flex;
   flex-direction: column;
@@ -163,7 +201,10 @@ body.dark-mode .styled-table label {
   border-radius: 4px;
   background: #fff;
   color: #000;
-  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+  transition:
+    background-color 0.3s,
+    border-color 0.3s,
+    color 0.3s;
 }
 body.dark-mode .styled-table input[type="text"] {
   background: #444;
@@ -171,7 +212,7 @@ body.dark-mode .styled-table input[type="text"] {
   color: #ddd;
 }
 
-/* Aspect‑ratio fallback */
+/* 7. Aspect‑ratio fallback */
 @supports not (aspect-ratio: 1/1) {
   .box, .bonus-box {
     width: 100%;
@@ -184,13 +225,12 @@ body.dark-mode .styled-table input[type="text"] {
   }
 }
 
-/* 6–9. BOX GRID & BOXES (unchanged) */
+/* 8. BOX GRID & BOXES */
 #box-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
   column-gap: 40px;
   row-gap: 20px;
-  max-width: 900px;
   margin: 0 auto;
   padding: 0 10px;
 }
