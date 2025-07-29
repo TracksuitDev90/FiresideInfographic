@@ -1,95 +1,171 @@
 window.addEventListener('DOMContentLoaded', () => {
-  const styledTable = document.querySelector('.styled-table');
+  // 1) Palette of 14 curated colors
   const brightColors = [
-    '#FF6B6B', '#FFD93D', '#6BCB77',
-    '#4D96FF', '#FF9CEE', '#FDFFB6'
+    '#FFEBAF', // Vanilla
+    '#4C9DB0', // Moonstone
+    '#19485F', // Ocean
+    '#D9E0A4', // Lime
+    '#F8C61E', // Sunburst
+    '#252C37', // Midnight
+    '#9A0002', // Cherry Cola
+    '#EFE6DE', // Cream Vanilla
+    '#004643', // Cyprus
+    '#F0EDE5', // Sand Dune
+    '#745275', // Lavender Fog
+    '#8AB8C2', // Morning Tide
+    '#0E5FB4', // True Blue
+    '#D8D262'  // Mustard Seed
   ];
 
-  // pick a random bright color & darken by 50 for contrast
+  // 2) Pick a random light variant
   const light = brightColors[Math.floor(Math.random() * brightColors.length)];
+
+  // 3) Compute a darker variant by subtracting 30 from each RGB channel
+  const amt = 30;
   const dark = (() => {
-    const amt = 50;
-    const num = parseInt(light.slice(1), 16);
-    let r = (num >> 16) - amt;
-    let g = ((num >> 8) & 0xff) - amt;
-    let b = (num & 0xff) - amt;
-    r = r < 0 ? 0 : r; g = g < 0 ? 0 : g; b = b < 0 ? 0 : b;
-    return '#' + ((1 << 24) | (r << 16) | (g << 8) | b)
+    const n = parseInt(light.slice(1), 16);
+    let r = (n >> 16) & 0xFF;
+    let g = (n >>  8) & 0xFF;
+    let b = (n      ) & 0xFF;
+    r = Math.max(0, r - amt);
+    g = Math.max(0, g - amt);
+    b = Math.max(0, b - amt);
+    return '#' + ((1<<24)|(r<<16)|(g<<8)|b)
       .toString(16)
       .slice(1)
       .toUpperCase();
   })();
 
-  styledTable.style.setProperty('--slanted-bg-light', light);
-  styledTable.style.setProperty('--slanted-bg-dark', dark);
+  // 4) Decide label text‑color via relative luminance
+  const [r, g, b] = light.match(/\w\w/g).map(h => parseInt(h, 16));
+  const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+  const textColor = lum > 0.5 ? '#000000' : '#FFFFFF';
 
+  // 5) Apply these to CSS variables on :root
+  const root = document.documentElement;
+  root.style.setProperty('--slanted-bg-light',   light);
+  root.style.setProperty('--slanted-bg-dark',    dark);
+  root.style.setProperty('--slanted-text-color', textColor);
+
+  // 6) Grab DOM elements
   const colorPicker    = document.getElementById("color-picker");
   const clearButton    = document.getElementById("clear-button");
   const darkModeToggle = document.getElementById("dark-mode-toggle");
   const saveButton     = document.getElementById("save-button");
   const inputs         = Array.from(document.querySelectorAll("#input-fields input"));
-  const boxes          = document.querySelectorAll(".box");
-  const bonusBoxes     = document.querySelectorAll(".bonus-box");
+  const boxes          = Array.from(document.querySelectorAll(".box"));
+  const bonusBoxes     = Array.from(document.querySelectorAll(".bonus-box"));
 
   let isPointerDown = false,
       startX        = 0,
       currentColor  = colorPicker.value;
 
+  // 7) Enable/disable the “Save as Image” button
   function checkSave() {
     saveButton.disabled = !inputs.every(i => i.value.trim());
   }
   inputs.forEach(i => i.addEventListener("input", checkSave));
   checkSave();
 
-  clearButton.addEventListener("click", e => {
-    e.preventDefault();
-    boxes.forEach(b => b.style.backgroundColor = "");
+  // 8) Clear all fills
+  clearButton.addEventListener("click", () => {
+    boxes.forEach(b => {
+      b.style.backgroundColor = "";
+      b.classList.remove("filled");
+    });
     bonusBoxes.forEach(b => {
       b.style.backgroundColor = "";
       b.classList.remove("maxed");
     });
   });
 
-  function paintMove(evt) {
+  // 9) Drag‑to‑paint helper
+  function handlePointerMove(evt) {
     if (!isPointerDown) return;
-    evt.target.style.backgroundColor =
-      evt.clientX - startX > 0 ? currentColor : "";
+    evt.target.style.backgroundColor = evt.clientX - startX > 0
+      ? currentColor
+      : "";
   }
   document.addEventListener("pointerup", () => isPointerDown = false);
-  boxes.forEach(box => {
+
+  // 10) Box event wiring
+  boxes.forEach((box, idx, arr) => {
+    box.tabIndex = 0; // make focusable
+
+    // pointer events
     box.addEventListener("pointerdown", e => {
       e.preventDefault();
       isPointerDown = true;
       startX = e.clientX;
     });
-    box.addEventListener("pointermove", paintMove);
+    box.addEventListener("pointermove", handlePointerMove);
     box.addEventListener("pointerleave", () => isPointerDown = false);
     box.addEventListener("pointercancel", () => isPointerDown = false);
-    box.addEventListener("click", e => {
-      const row = Array.from(e.target.parentNode.querySelectorAll(".box"));
-      const idx = row.indexOf(e.target);
-      row.forEach((c, i) => {
-        c.style.backgroundColor = i <= idx ? currentColor : "";
+
+    // click to fill all up to this box
+    box.addEventListener("click", () => {
+      const row = box.parentNode.querySelectorAll(".box");
+      const i   = Array.from(row).indexOf(box);
+
+      // clear previous
+      row.forEach(b => {
+        b.style.backgroundColor = "";
+        b.classList.remove("filled");
       });
+
+      // fill up to i
+      row.forEach((b, j) => {
+        if (j <= i) {
+          b.style.backgroundColor = currentColor;
+          b.classList.add("filled");
+        }
+      });
+    });
+
+    // keyboard support: Space/Enter to fill, arrows to navigate
+    box.addEventListener("keydown", e => {
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        box.click();
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        const next = arr[idx+1] || arr[0];
+        next.focus();
+      }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        const prev = arr[idx-1] || arr[arr.length-1];
+        prev.focus();
+      }
     });
   });
 
-  bonusBoxes.forEach(b => b.addEventListener("click", () => {
-    b.classList.toggle("maxed");
-  }));
+  // 11) Bonus‑box “maxed” toggle + keyboard
+  bonusBoxes.forEach(bonus => {
+    bonus.tabIndex = 0;
+    bonus.addEventListener("click", () => bonus.classList.toggle("maxed"));
+    bonus.addEventListener("keydown", e => {
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        bonus.click();
+      }
+    });
+  });
 
+  // 12) Dark Mode toggle
   darkModeToggle.addEventListener("click", () => {
     const dm = document.body.classList.toggle("dark-mode");
     darkModeToggle.setAttribute("aria-pressed", dm);
   });
 
+  // 13) Save as Image
   saveButton.addEventListener("click", () => {
     if (saveButton.disabled) {
       alert("Please complete before saving");
       return;
     }
-    // wait for fonts before snapshot
-    document.fonts.ready.then(() => {
+    document.fonts.ready.then(() =>
       html2canvas(document.getElementById("infograph-container"), {
         scale: 2,
         useCORS: true
@@ -97,13 +173,14 @@ window.addEventListener('DOMContentLoaded', () => {
       .then(canvas => {
         const link = document.createElement("a");
         link.download = "fireside-infograph.png";
-        link.href = canvas.toDataURL("image/png");
+        link.href     = canvas.toDataURL("image/png");
         link.click();
       })
-      .catch(console.error);
-    });
+      .catch(console.error)
+    );
   });
 
+  // 14) Color picker live update
   colorPicker.addEventListener("input", e => {
     currentColor = e.target.value;
   });
