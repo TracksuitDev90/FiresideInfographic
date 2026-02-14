@@ -49,16 +49,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 6) Grab DOM elements
   const colorPicker    = document.getElementById("color-picker");
+  colorPicker.value    = light;
   const clearButton    = document.getElementById("clear-button");
   const darkModeToggle = document.getElementById("dark-mode-toggle");
   const saveButton     = document.getElementById("save-button");
   const inputs         = Array.from(document.querySelectorAll("#input-fields input"));
-  const boxes          = Array.from(document.querySelectorAll(".box"));
+  const boxes          = Array.from(document.querySelectorAll(".box:not(.bonus-box)"));
   const bonusBoxes     = Array.from(document.querySelectorAll(".bonus-box"));
 
   let isPointerDown = false,
+      didDrag       = false,
       startX        = 0,
-      currentColor  = colorPicker.value;
+      currentColor  = light;
+
+  const DRAG_THRESHOLD = 5;
 
   // 7) Enable/disable the “Save as Image” button
   function checkSave() {
@@ -82,9 +86,10 @@ window.addEventListener('DOMContentLoaded', () => {
   // 9) Drag‑to‑paint helper
   function handlePointerMove(evt) {
     if (!isPointerDown) return;
-    evt.target.style.backgroundColor = evt.clientX - startX > 0
-      ? currentColor
-      : "";
+    const dx = evt.clientX - startX;
+    if (Math.abs(dx) < DRAG_THRESHOLD) return;
+    didDrag = true;
+    evt.currentTarget.style.backgroundColor = dx > 0 ? currentColor : "";
   }
   document.addEventListener("pointerup", () => isPointerDown = false);
 
@@ -96,15 +101,16 @@ window.addEventListener('DOMContentLoaded', () => {
     box.addEventListener("pointerdown", e => {
       e.preventDefault();
       isPointerDown = true;
+      didDrag = false;
       startX = e.clientX;
     });
     box.addEventListener("pointermove", handlePointerMove);
-    box.addEventListener("pointerleave", () => isPointerDown = false);
-    box.addEventListener("pointercancel", () => isPointerDown = false);
+    box.addEventListener("pointercancel", () => { isPointerDown = false; didDrag = false; });
 
     // click to fill all up to this box
     box.addEventListener("click", () => {
-      const row = box.parentNode.querySelectorAll(".box");
+      if (didDrag) { didDrag = false; return; }
+      const row = box.parentNode.querySelectorAll(".box:not(.bonus-box)");
       const i   = Array.from(row).indexOf(box);
 
       // clear previous
@@ -144,7 +150,10 @@ window.addEventListener('DOMContentLoaded', () => {
   // 11) Bonus‑box “maxed” toggle + keyboard
   bonusBoxes.forEach(bonus => {
     bonus.tabIndex = 0;
-    bonus.addEventListener("click", () => bonus.classList.toggle("maxed"));
+    bonus.addEventListener("click", () => {
+      const isMaxed = bonus.classList.toggle("maxed");
+      bonus.style.backgroundColor = isMaxed ? currentColor : "";
+    });
     bonus.addEventListener("keydown", e => {
       if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
@@ -165,18 +174,24 @@ window.addEventListener('DOMContentLoaded', () => {
       alert("Please complete before saving");
       return;
     }
+    const controls = document.getElementById("container");
+    controls.style.display = "none";
     document.fonts.ready.then(() =>
       html2canvas(document.getElementById("infograph-container"), {
         scale: 2,
         useCORS: true
       })
       .then(canvas => {
+        controls.style.display = "";
         const link = document.createElement("a");
         link.download = "fireside-infograph.png";
         link.href     = canvas.toDataURL("image/png");
         link.click();
       })
-      .catch(console.error)
+      .catch(err => {
+        controls.style.display = "";
+        console.error(err);
+      })
     );
   });
 
