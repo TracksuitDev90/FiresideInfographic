@@ -75,11 +75,12 @@ body.dark-mode #infograph-container {
 body.dark-mode #container input#color-picker {
   border-color:var(--slanted-bg-dark);
 }
-#container input#color-picker::-webkit-color-swatch-wrapper,
-#container input#color-picker::-moz-color-swatch-wrapper {
+#container input#color-picker::-webkit-color-swatch-wrapper {
   padding:0; border-radius:50%; overflow:hidden;
 }
-#container input#color-picker::-webkit-color-swatch,
+#container input#color-picker::-webkit-color-swatch {
+  border:none; border-radius:0;
+}
 #container input#color-picker::-moz-color-swatch {
   border:none; border-radius:0;
 }
@@ -110,7 +111,7 @@ body.dark-mode #container button {
 
 /* 6c. DISABLED SAVE */
 #save-button:disabled {
-  opacity:.5; cursor:not-allowed; pointer-events:none;
+  opacity:.5; cursor:not-allowed;
 }
 
 /* 6d. ICON SIZING */
@@ -270,12 +271,13 @@ body.dark-mode .box {
   aspect-ratio:1/1; width:100%;
   max-width:50px; min-width:30px;
   background:#dedede;
-  border:3px solid blue;
+  border:3px solid var(--slanted-bg-light);
   border-radius:8px;
   transition:border-color .2s,box-shadow .2s;
 }
 body.dark-mode .bonus-box {
   background:#555;
+  border-color:var(--slanted-bg-dark);
 }
 @keyframes pulse {
   0%,100% { transform:scale(1) }
