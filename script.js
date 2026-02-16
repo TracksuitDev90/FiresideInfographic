@@ -57,7 +57,6 @@ window.addEventListener('DOMContentLoaded', () => {
     return '#' + ((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1).toUpperCase();
   }
 
-  // Shift brightness by a factor (1.0 = unchanged, >1 = lighter, <1 = darker)
   function adjustBrightness(hex, factor) {
     let [r, g, b] = hexToRgb(hex);
     r = Math.min(255, Math.max(0, Math.round(r * factor)));
@@ -66,43 +65,79 @@ window.addEventListener('DOMContentLoaded', () => {
     return rgbToHex(r, g, b);
   }
 
-  // Compute luminance for contrast text on tooltip
-  function getLuminance(hex) {
-    const [r, g, b] = hexToRgb(hex);
-    return (0.299*r + 0.587*g + 0.114*b) / 255;
-  }
-
-  // Compute gradient color for a box at position j out of total filled boxes
-  // Goes from slightly darker to slightly lighter across the row
+  // Gradient: starts lighter, gets richer/deeper as more boxes filled
   function gradientColor(baseHex, j, total) {
     if (total <= 1) return baseHex;
-    // Range: 0.92 (darker) to 1.08 (lighter) — subtle 16% spread
+    // t=0 → lighter (factor 1.12), t=1 → deeper (factor 0.88)
     const t = j / (total - 1);
-    const factor = 0.92 + t * 0.16;
+    const factor = 1.12 - t * 0.24;
     return adjustBrightness(baseHex, factor);
   }
 
+  // === DYNAMIC 4-SWATCH PALETTE (rotates on refresh) ===
+  const fillColorPool = [
+    { hex: '#FF6B6B', name: 'Coral' },
+    { hex: '#4ECDC4', name: 'Teal' },
+    { hex: '#45B7D1', name: 'Sky Blue' },
+    { hex: '#96CEB4', name: 'Sage' },
+    { hex: '#FFEAA7', name: 'Butter' },
+    { hex: '#DDA0DD', name: 'Plum' },
+    { hex: '#F7DC6F', name: 'Sunflower' },
+    { hex: '#BB8FCE', name: 'Lavender' },
+    { hex: '#85C1E9', name: 'Periwinkle' },
+    { hex: '#F0B27A', name: 'Peach' },
+    { hex: '#82E0AA', name: 'Spring' },
+    { hex: '#F1948A', name: 'Rose' },
+    { hex: '#E74C3C', name: 'Red' },
+    { hex: '#3498DB', name: 'Blue' },
+    { hex: '#2ECC71', name: 'Emerald' },
+    { hex: '#E67E22', name: 'Carrot' }
+  ];
+
+  // Shuffle and pick 4
+  function pickRandom(arr, count) {
+    const shuffled = arr.slice();
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, count);
+  }
+
+  const chosen4 = pickRandom(fillColorPool, 4);
+  const palette  = document.getElementById("color-palette");
+  const colorPicker = document.getElementById("color-picker");
+
+  // Insert swatches before the color picker input
+  chosen4.forEach((c, idx) => {
+    const el = document.createElement("div");
+    el.className = "color-swatch" + (idx === 0 ? " active" : "");
+    el.dataset.color = c.hex;
+    el.style.background = c.hex;
+    el.title = c.name;
+    palette.insertBefore(el, colorPicker);
+  });
+
   // 6) Grab DOM elements
-  const colorPicker    = document.getElementById("color-picker");
   const clearButton    = document.getElementById("clear-button");
   const darkModeToggle = document.getElementById("dark-mode-toggle");
   const saveButton     = document.getElementById("save-button");
   const inputs         = Array.from(document.querySelectorAll("#input-fields input"));
   const boxes          = Array.from(document.querySelectorAll(".box:not(.bonus-box)"));
   const bonusBoxes     = Array.from(document.querySelectorAll(".bonus-box"));
-  const swatches       = Array.from(document.querySelectorAll(".color-swatch"));
+  const swatches       = Array.from(palette.querySelectorAll(".color-swatch"));
 
-  // Feature 3: Default fill color is first swatch (NOT the theme color)
+  // Default fill color = first of the 4 random swatches (NOT the theme)
   let isPointerDown = false,
       didDrag       = false,
       startX        = 0,
-      currentColor  = '#FF6B6B';
+      currentColor  = chosen4[0].hex;
 
   colorPicker.value = currentColor;
 
   const DRAG_THRESHOLD = 5;
 
-  // === FEATURE 3: COLOR PALETTE SWATCH WIRING ===
+  // === COLOR PALETTE SWATCH WIRING ===
   function setActiveColor(hex, activeSwatch) {
     currentColor = hex;
     colorPicker.value = hex;
@@ -118,25 +153,21 @@ window.addEventListener('DOMContentLoaded', () => {
 
   colorPicker.addEventListener("input", e => {
     currentColor = e.target.value;
-    // Deselect all swatches since custom color is in use
     swatches.forEach(s => s.classList.remove('active'));
   });
 
-  // === FEATURE 1: CATEGORY DESCRIPTION TOOLTIPS ===
+  // === CATEGORY DESCRIPTION TOOLTIPS ===
   const categories = Array.from(document.querySelectorAll(".category[data-desc]"));
   let activeTooltip = null;
 
   categories.forEach(cat => {
-    // Create tooltip element
     const tip = document.createElement("span");
     tip.className = "category-tooltip";
     tip.textContent = cat.dataset.desc;
-    // Style using theme colors
     tip.style.backgroundColor = light;
     tip.style.color = textColor;
     cat.appendChild(tip);
 
-    // Desktop: hover
     cat.addEventListener("mouseenter", () => {
       tip.classList.add("visible");
     });
@@ -144,7 +175,6 @@ window.addEventListener('DOMContentLoaded', () => {
       tip.classList.remove("visible");
     });
 
-    // Mobile: tap to toggle
     cat.addEventListener("touchstart", e => {
       e.preventDefault();
       if (activeTooltip && activeTooltip !== tip) {
@@ -155,7 +185,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }, { passive: false });
   });
 
-  // Dismiss tooltip on tap elsewhere (mobile)
   document.addEventListener("touchstart", e => {
     if (activeTooltip && !e.target.closest(".category")) {
       activeTooltip.classList.remove("visible");
@@ -182,7 +211,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 9) Drag-to-paint helper (with gradient)
+  // 9) Drag-to-paint helper
   function handlePointerMove(evt) {
     if (!isPointerDown) return;
     const dx = evt.clientX - startX;
@@ -205,19 +234,17 @@ window.addEventListener('DOMContentLoaded', () => {
     box.addEventListener("pointermove", handlePointerMove);
     box.addEventListener("pointercancel", () => { isPointerDown = false; didDrag = false; });
 
-    // Click to fill all up to this box (with gradient - Feature 2)
+    // Click to fill all up to this box (with reversed gradient)
     box.addEventListener("click", () => {
       if (didDrag) { didDrag = false; return; }
       const row = box.parentNode.querySelectorAll(".box:not(.bonus-box)");
       const i   = Array.from(row).indexOf(box);
 
-      // clear previous
       row.forEach(b => {
         b.style.backgroundColor = "";
         b.classList.remove("filled");
       });
 
-      // fill up to i with gradient
       const fillCount = i + 1;
       row.forEach((b, j) => {
         if (j <= i) {
@@ -227,7 +254,6 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // keyboard support
     box.addEventListener("keydown", e => {
       if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
@@ -267,7 +293,7 @@ window.addEventListener('DOMContentLoaded', () => {
     darkModeToggle.setAttribute("aria-pressed", dm);
   });
 
-  // 13) Save as Image (Feature 4: consistent widescreen export)
+  // 13) Save as Image (consistent widescreen export)
   saveButton.addEventListener("click", () => {
     if (saveButton.disabled) {
       alert("Please complete before saving");
@@ -276,11 +302,9 @@ window.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById("infograph-container");
     const controls  = document.getElementById("container");
 
-    // Hide controls and force fixed widescreen layout
     controls.style.display = "none";
     container.classList.add("exporting");
 
-    // Wait for layout reflow + fonts before capture
     requestAnimationFrame(() => {
       document.fonts.ready.then(() =>
         html2canvas(container, {
