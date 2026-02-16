@@ -38,7 +38,21 @@
 
     <!-- 2) CONTROLS -->
     <div id="container">
-      <input id="color-picker" type="color" title="Pick fill color" />
+      <div id="color-palette">
+        <div class="color-swatch active" data-color="#FF6B6B" style="background:#FF6B6B" title="Coral"></div>
+        <div class="color-swatch" data-color="#4ECDC4" style="background:#4ECDC4" title="Teal"></div>
+        <div class="color-swatch" data-color="#45B7D1" style="background:#45B7D1" title="Sky Blue"></div>
+        <div class="color-swatch" data-color="#96CEB4" style="background:#96CEB4" title="Sage"></div>
+        <div class="color-swatch" data-color="#FFEAA7" style="background:#FFEAA7" title="Butter"></div>
+        <div class="color-swatch" data-color="#DDA0DD" style="background:#DDA0DD" title="Plum"></div>
+        <div class="color-swatch" data-color="#F7DC6F" style="background:#F7DC6F" title="Sunflower"></div>
+        <div class="color-swatch" data-color="#BB8FCE" style="background:#BB8FCE" title="Lavender"></div>
+        <div class="color-swatch" data-color="#85C1E9" style="background:#85C1E9" title="Periwinkle"></div>
+        <div class="color-swatch" data-color="#F0B27A" style="background:#F0B27A" title="Peach"></div>
+        <div class="color-swatch" data-color="#82E0AA" style="background:#82E0AA" title="Spring"></div>
+        <div class="color-swatch" data-color="#F1948A" style="background:#F1948A" title="Rose"></div>
+        <input id="color-picker" type="color" value="#FF6B6B" title="Custom color" />
+      </div>
 
       <button id="clear-button" type="button" aria-label="Clear filled boxes">
         <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
@@ -79,7 +93,7 @@
     <div id="box-container">
       <!-- Category row template -->
       <div class="box-row">
-        <h3 class="category">Intelligence</h3>
+        <h3 class="category" data-desc="How smart are you compared to the average person?">Intelligence</h3>
         <div class="boxes">
           <!-- 9 normal boxes -->
           <div class="box" title="1/10"></div>
@@ -97,7 +111,7 @@
       </div>
       <!-- Repeat each category -->
       <div class="box-row">
-        <h3 class="category">Wealth</h3>
+        <h3 class="category" data-desc="How wealthy are you compared to the average person?">Wealth</h3>
         <div class="boxes">
           <div class="box" title="1/10"></div>
           <div class="box" title="2/10"></div>
@@ -112,7 +126,7 @@
         </div>
       </div>
       <div class="box-row">
-        <h3 class="category">Sex Life</h3>
+        <h3 class="category" data-desc="How's your sex life compared to the average person?">Sex Life</h3>
         <div class="boxes">
           <div class="box" title="1/10"></div>
           <div class="box" title="2/10"></div>
@@ -127,7 +141,7 @@
         </div>
       </div>
       <div class="box-row">
-        <h3 class="category">Physical Appearance</h3>
+        <h3 class="category" data-desc="How attractive are you compared to the average person?">Physical Appearance</h3>
         <div class="boxes">
           <div class="box" title="1/10"></div>
           <div class="box" title="2/10"></div>
@@ -142,7 +156,7 @@
         </div>
       </div>
       <div class="box-row">
-        <h3 class="category">Personality</h3>
+        <h3 class="category" data-desc="How likeable is your personality compared to the average person?">Personality</h3>
         <div class="boxes">
           <div class="box" title="1/10"></div>
           <div class="box" title="2/10"></div>
@@ -157,7 +171,7 @@
         </div>
       </div>
       <div class="box-row">
-        <h3 class="category">Confidence</h3>
+        <h3 class="category" data-desc="How confident are you compared to the average person?">Confidence</h3>
         <div class="boxes">
           <div class="box" title="1/10"></div>
           <div class="box" title="2/10"></div>
@@ -172,7 +186,7 @@
         </div>
       </div>
       <div class="box-row">
-        <h3 class="category">Social Life</h3>
+        <h3 class="category" data-desc="How active is your social life compared to the average person?">Social Life</h3>
         <div class="boxes">
           <div class="box" title="1/10"></div>
           <div class="box" title="2/10"></div>
@@ -187,7 +201,7 @@
         </div>
       </div>
       <div class="box-row">
-        <h3 class="category">Health / Fitness</h3>
+        <h3 class="category" data-desc="How healthy and fit are you compared to the average person?">Health / Fitness</h3>
         <div class="boxes">
           <div class="box" title="1/10"></div>
           <div class="box" title="2/10"></div>
@@ -202,7 +216,7 @@
         </div>
       </div>
       <div class="box-row">
-        <h3 class="category">Happiness</h3>
+        <h3 class="category" data-desc="How happy are you compared to the average person?">Happiness</h3>
         <div class="boxes">
           <div class="box" title="1/10"></div>
           <div class="box" title="2/10"></div>
@@ -217,7 +231,7 @@
         </div>
       </div>
       <div class="box-row">
-        <h3 class="category">Cringiness</h3>
+        <h3 class="category" data-desc="How cringey are you compared to the average person?">Cringiness</h3>
         <div class="boxes">
           <div class="box" title="1/10"></div>
           <div class="box" title="2/10"></div>
