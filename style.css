@@ -295,3 +295,82 @@ body.dark-mode .bonus-box {
   outline:3px solid var(--slanted-text-color);
   outline-offset:2px;
 }
+
+/* 10. CATEGORY DESCRIPTION TOOLTIP */
+.category {
+  position:relative;
+  cursor:pointer;
+}
+.category-tooltip {
+  position:absolute;
+  left:50%; top:100%;
+  transform:translateX(-50%);
+  padding:6px 12px;
+  border-radius:6px;
+  font-family:'Inter',sans-serif;
+  font-weight:500;
+  font-size:.8rem;
+  white-space:nowrap;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .2s;
+  z-index:10;
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+.category-tooltip.visible {
+  opacity:1;
+}
+@media (max-width:600px) {
+  .category-tooltip {
+    white-space:normal;
+    width:max-content;
+    max-width:220px;
+    text-align:center;
+  }
+}
+
+/* 11. COLOR PALETTE SWATCHES */
+#color-palette {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:6px;
+  justify-content:center;
+}
+.color-swatch {
+  width:32px; height:32px;
+  border-radius:50%;
+  cursor:pointer;
+  border:3px solid transparent;
+  transition:transform .15s, border-color .15s, box-shadow .15s;
+  box-shadow:0 1px 4px rgba(0,0,0,.15);
+}
+.color-swatch:hover {
+  transform:scale(1.15);
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+.color-swatch.active {
+  border-color:#333;
+  transform:scale(1.15);
+  box-shadow:0 0 0 2px #fff, 0 0 0 4px #333;
+}
+body.dark-mode .color-swatch.active {
+  border-color:#fff;
+  box-shadow:0 0 0 2px #222, 0 0 0 4px #fff;
+}
+#color-palette input#color-picker {
+  width:32px; height:32px;
+}
+
+/* 12. SCREENSHOT EXPORT OVERRIDES */
+#infograph-container.exporting {
+  width:1200px !important;
+  max-width:1200px !important;
+  padding:40px !important;
+}
+#infograph-container.exporting #box-container {
+  grid-template-columns:repeat(2,1fr) !important;
+}
+#infograph-container.exporting .styled-table {
+  grid-template-columns:repeat(2,1fr) !important;
+}

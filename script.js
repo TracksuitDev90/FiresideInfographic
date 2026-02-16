@@ -1,5 +1,5 @@
 window.addEventListener('DOMContentLoaded', () => {
-  // 1) Palette of 14 curated colors
+  // 1) Palette of 14 curated theme colors (for the form/buttons, NOT fill color)
   const brightColors = [
     '#FFEBAF', // Vanilla
     '#4C9DB0', // Moonstone
@@ -17,7 +17,7 @@ window.addEventListener('DOMContentLoaded', () => {
     '#D8D262'  // Mustard Seed
   ];
 
-  // 2) Pick a random light variant
+  // 2) Pick a random theme color
   const light = brightColors[Math.floor(Math.random() * brightColors.length)];
 
   // 3) Compute a darker variant by subtracting 30 from each RGB channel
@@ -36,9 +36,9 @@ window.addEventListener('DOMContentLoaded', () => {
       .toUpperCase();
   })();
 
-  // 4) Decide label text‑color via relative luminance
-  const [r, g, b] = light.match(/\w\w/g).map(h => parseInt(h, 16));
-  const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+  // 4) Decide label text-color via relative luminance
+  const [rT, gT, bT] = light.match(/\w\w/g).map(h => parseInt(h, 16));
+  const lum = (0.299*rT + 0.587*gT + 0.114*bT) / 255;
   const textColor = lum > 0.5 ? '#000000' : '#FFFFFF';
 
   // 5) Apply these to CSS variables on :root
@@ -47,24 +47,123 @@ window.addEventListener('DOMContentLoaded', () => {
   root.style.setProperty('--slanted-bg-dark',    dark);
   root.style.setProperty('--slanted-text-color', textColor);
 
+  // === COLOR UTILITIES ===
+  function hexToRgb(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return [(n >> 16) & 0xFF, (n >> 8) & 0xFF, n & 0xFF];
+  }
+
+  function rgbToHex(r, g, b) {
+    return '#' + ((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1).toUpperCase();
+  }
+
+  // Shift brightness by a factor (1.0 = unchanged, >1 = lighter, <1 = darker)
+  function adjustBrightness(hex, factor) {
+    let [r, g, b] = hexToRgb(hex);
+    r = Math.min(255, Math.max(0, Math.round(r * factor)));
+    g = Math.min(255, Math.max(0, Math.round(g * factor)));
+    b = Math.min(255, Math.max(0, Math.round(b * factor)));
+    return rgbToHex(r, g, b);
+  }
+
+  // Compute luminance for contrast text on tooltip
+  function getLuminance(hex) {
+    const [r, g, b] = hexToRgb(hex);
+    return (0.299*r + 0.587*g + 0.114*b) / 255;
+  }
+
+  // Compute gradient color for a box at position j out of total filled boxes
+  // Goes from slightly darker to slightly lighter across the row
+  function gradientColor(baseHex, j, total) {
+    if (total <= 1) return baseHex;
+    // Range: 0.92 (darker) to 1.08 (lighter) — subtle 16% spread
+    const t = j / (total - 1);
+    const factor = 0.92 + t * 0.16;
+    return adjustBrightness(baseHex, factor);
+  }
+
   // 6) Grab DOM elements
   const colorPicker    = document.getElementById("color-picker");
-  colorPicker.value    = light;
   const clearButton    = document.getElementById("clear-button");
   const darkModeToggle = document.getElementById("dark-mode-toggle");
   const saveButton     = document.getElementById("save-button");
   const inputs         = Array.from(document.querySelectorAll("#input-fields input"));
   const boxes          = Array.from(document.querySelectorAll(".box:not(.bonus-box)"));
   const bonusBoxes     = Array.from(document.querySelectorAll(".bonus-box"));
+  const swatches       = Array.from(document.querySelectorAll(".color-swatch"));
 
+  // Feature 3: Default fill color is first swatch (NOT the theme color)
   let isPointerDown = false,
       didDrag       = false,
       startX        = 0,
-      currentColor  = light;
+      currentColor  = '#FF6B6B';
+
+  colorPicker.value = currentColor;
 
   const DRAG_THRESHOLD = 5;
 
-  // 7) Enable/disable the “Save as Image” button
+  // === FEATURE 3: COLOR PALETTE SWATCH WIRING ===
+  function setActiveColor(hex, activeSwatch) {
+    currentColor = hex;
+    colorPicker.value = hex;
+    swatches.forEach(s => s.classList.remove('active'));
+    if (activeSwatch) activeSwatch.classList.add('active');
+  }
+
+  swatches.forEach(swatch => {
+    swatch.addEventListener("click", () => {
+      setActiveColor(swatch.dataset.color, swatch);
+    });
+  });
+
+  colorPicker.addEventListener("input", e => {
+    currentColor = e.target.value;
+    // Deselect all swatches since custom color is in use
+    swatches.forEach(s => s.classList.remove('active'));
+  });
+
+  // === FEATURE 1: CATEGORY DESCRIPTION TOOLTIPS ===
+  const categories = Array.from(document.querySelectorAll(".category[data-desc]"));
+  let activeTooltip = null;
+
+  categories.forEach(cat => {
+    // Create tooltip element
+    const tip = document.createElement("span");
+    tip.className = "category-tooltip";
+    tip.textContent = cat.dataset.desc;
+    // Style using theme colors
+    tip.style.backgroundColor = light;
+    tip.style.color = textColor;
+    cat.appendChild(tip);
+
+    // Desktop: hover
+    cat.addEventListener("mouseenter", () => {
+      tip.classList.add("visible");
+    });
+    cat.addEventListener("mouseleave", () => {
+      tip.classList.remove("visible");
+    });
+
+    // Mobile: tap to toggle
+    cat.addEventListener("touchstart", e => {
+      e.preventDefault();
+      if (activeTooltip && activeTooltip !== tip) {
+        activeTooltip.classList.remove("visible");
+      }
+      tip.classList.toggle("visible");
+      activeTooltip = tip.classList.contains("visible") ? tip : null;
+    }, { passive: false });
+  });
+
+  // Dismiss tooltip on tap elsewhere (mobile)
+  document.addEventListener("touchstart", e => {
+    if (activeTooltip && !e.target.closest(".category")) {
+      activeTooltip.classList.remove("visible");
+      activeTooltip = null;
+    }
+  });
+
+  // 7) Enable/disable the "Save as Image" button
   function checkSave() {
     saveButton.disabled = !inputs.every(i => i.value.trim());
   }
@@ -83,7 +182,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 9) Drag‑to‑paint helper
+  // 9) Drag-to-paint helper (with gradient)
   function handlePointerMove(evt) {
     if (!isPointerDown) return;
     const dx = evt.clientX - startX;
@@ -95,9 +194,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 10) Box event wiring
   boxes.forEach((box, idx, arr) => {
-    box.tabIndex = 0; // make focusable
+    box.tabIndex = 0;
 
-    // pointer events
     box.addEventListener("pointerdown", e => {
       e.preventDefault();
       isPointerDown = true;
@@ -107,7 +205,7 @@ window.addEventListener('DOMContentLoaded', () => {
     box.addEventListener("pointermove", handlePointerMove);
     box.addEventListener("pointercancel", () => { isPointerDown = false; didDrag = false; });
 
-    // click to fill all up to this box
+    // Click to fill all up to this box (with gradient - Feature 2)
     box.addEventListener("click", () => {
       if (didDrag) { didDrag = false; return; }
       const row = box.parentNode.querySelectorAll(".box:not(.bonus-box)");
@@ -119,16 +217,17 @@ window.addEventListener('DOMContentLoaded', () => {
         b.classList.remove("filled");
       });
 
-      // fill up to i
+      // fill up to i with gradient
+      const fillCount = i + 1;
       row.forEach((b, j) => {
         if (j <= i) {
-          b.style.backgroundColor = currentColor;
+          b.style.backgroundColor = gradientColor(currentColor, j, fillCount);
           b.classList.add("filled");
         }
       });
     });
 
-    // keyboard support: Space/Enter to fill, arrows to navigate
+    // keyboard support
     box.addEventListener("keydown", e => {
       if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
@@ -147,7 +246,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 11) Bonus‑box “maxed” toggle + keyboard
+  // 11) Bonus-box "maxed" toggle + keyboard
   bonusBoxes.forEach(bonus => {
     bonus.tabIndex = 0;
     bonus.addEventListener("click", () => {
@@ -168,35 +267,42 @@ window.addEventListener('DOMContentLoaded', () => {
     darkModeToggle.setAttribute("aria-pressed", dm);
   });
 
-  // 13) Save as Image
+  // 13) Save as Image (Feature 4: consistent widescreen export)
   saveButton.addEventListener("click", () => {
     if (saveButton.disabled) {
       alert("Please complete before saving");
       return;
     }
-    const controls = document.getElementById("container");
-    controls.style.display = "none";
-    document.fonts.ready.then(() =>
-      html2canvas(document.getElementById("infograph-container"), {
-        scale: 2,
-        useCORS: true
-      })
-      .then(canvas => {
-        controls.style.display = "";
-        const link = document.createElement("a");
-        link.download = "fireside-infograph.png";
-        link.href     = canvas.toDataURL("image/png");
-        link.click();
-      })
-      .catch(err => {
-        controls.style.display = "";
-        console.error(err);
-      })
-    );
-  });
+    const container = document.getElementById("infograph-container");
+    const controls  = document.getElementById("container");
 
-  // 14) Color picker live update
-  colorPicker.addEventListener("input", e => {
-    currentColor = e.target.value;
+    // Hide controls and force fixed widescreen layout
+    controls.style.display = "none";
+    container.classList.add("exporting");
+
+    // Wait for layout reflow + fonts before capture
+    requestAnimationFrame(() => {
+      document.fonts.ready.then(() =>
+        html2canvas(container, {
+          scale: 2,
+          useCORS: true,
+          width: 1200,
+          windowWidth: 1200
+        })
+        .then(canvas => {
+          controls.style.display = "";
+          container.classList.remove("exporting");
+          const link = document.createElement("a");
+          link.download = "fireside-infograph.png";
+          link.href     = canvas.toDataURL("image/png");
+          link.click();
+        })
+        .catch(err => {
+          controls.style.display = "";
+          container.classList.remove("exporting");
+          console.error(err);
+        })
+      );
+    });
   });
 });
