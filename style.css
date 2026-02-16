@@ -50,18 +50,18 @@ body.dark-mode #infograph-container {
   background:#121212;
 }
 
-/* 6. CONTROLS BAR */
+/* 6. CONTROLS BAR — single row */
 #container {
   display:flex; flex-wrap:wrap;
   justify-content:center; align-items:center;
   gap:10px; margin:20px 0 30px;
 }
 
-/* 6a. COLOR PICKER */
+/* 6a. COLOR PICKER (smaller to fit single row) */
 #container input#color-picker {
   -webkit-appearance:none; appearance:none;
-  width:50px; height:50px;
-  border:3px solid var(--slanted-bg-light);
+  width:36px; height:36px;
+  border:2px solid #ccc;
   border-radius:50%;
   background:transparent;
   cursor:pointer;
@@ -73,7 +73,7 @@ body.dark-mode #infograph-container {
   box-shadow:0 4px 12px rgba(0,0,0,.3);
 }
 body.dark-mode #container input#color-picker {
-  border-color:var(--slanted-bg-dark);
+  border-color:#666;
 }
 #container input#color-picker::-webkit-color-swatch-wrapper {
   padding:0; border-radius:50%; overflow:hidden;
@@ -85,7 +85,7 @@ body.dark-mode #container input#color-picker {
   border:none; border-radius:0;
 }
 
-/* 6b. BUTTONS (solid = slanted‑table color) */
+/* 6b. BUTTONS (solid = slanted-table color) */
 #container button {
   display:inline-flex; align-items:center; gap:6px;
   padding:10px 20px; font-size:1rem; font-weight:600;
@@ -119,7 +119,7 @@ body.dark-mode #container button {
   width:1.2em; height:1.2em; flex-shrink:0;
 }
 
-/* 6e. DARK/LIGHT TOGGLE SWAP */
+/* 6e. DARK/LIGHT TOGGLE SWAP + ICON COLORS */
 .icon-sun, .label-sun { display:none; }
 body.dark-mode .icon-sun,
 body.dark-mode .label-sun {
@@ -129,6 +129,10 @@ body.dark-mode .icon-moon,
 body.dark-mode .label-moon {
   display:none;
 }
+/* Moon icon = yellow (shown in light mode, means "switch to dark") */
+.icon-moon { fill:#F4C430; }
+/* Sun icon = orange (shown in dark mode, means "switch to light") */
+.icon-sun { fill:#FF8C00; }
 
 /* 6f. TOOLTIP */
 .tooltip-wrapper {
@@ -172,7 +176,7 @@ body.dark-mode .styled-table {
   background:var(--slanted-bg-dark);
 }
 
-/* 7a. FORM FIELDS */
+/* 7a. FORM FIELDS — neomorphic design */
 .styled-table .field {
   display:flex; flex-direction:column;
 }
@@ -182,21 +186,48 @@ body.dark-mode .styled-table {
   color:var(--slanted-text-color);
 }
 .styled-table input[type="text"] {
-  padding:8px;
+  padding:10px 14px;
   font-family:'Inter',sans-serif;
   font-weight:500;
   font-size:1rem;
-  border:2px solid #009879;
-  border-radius:4px;
-  background:#fff;
-  color:#000;
-  transition:background .3s,border-color .3s,color .3s;
+  border:none;
+  border-radius:12px;
+  background:#e8e8e8;
+  color:#222;
+  box-shadow:
+    inset 4px 4px 8px rgba(0,0,0,.12),
+    inset -4px -4px 8px rgba(255,255,255,.7);
+  transition:background .3s,box-shadow .3s,color .3s;
+  outline:none;
 }
+.styled-table input[type="text"]:focus {
+  box-shadow:
+    inset 4px 4px 8px rgba(0,0,0,.15),
+    inset -4px -4px 8px rgba(255,255,255,.8),
+    0 0 0 3px rgba(0,152,121,.35);
+}
+.styled-table input[type="text"]::placeholder {
+  color:#999;
+}
+/* Dark mode neomorphic */
 body.dark-mode .styled-table input[type="text"] {
-  background:#444; border-color:#4fd6a5; color:#ddd;
+  background:#2a2a2a;
+  color:#eee;
+  box-shadow:
+    inset 4px 4px 8px rgba(0,0,0,.4),
+    inset -4px -4px 8px rgba(255,255,255,.05);
+}
+body.dark-mode .styled-table input[type="text"]:focus {
+  box-shadow:
+    inset 4px 4px 8px rgba(0,0,0,.45),
+    inset -4px -4px 8px rgba(255,255,255,.06),
+    0 0 0 3px rgba(79,214,165,.35);
+}
+body.dark-mode .styled-table input[type="text"]::placeholder {
+  color:#777;
 }
 
-/* 8. ASPECT‑RATIO FALLBACK */
+/* 8. ASPECT-RATIO FALLBACK */
 @supports not (aspect-ratio:1/1) {
   .box, .bonus-box {
     width:100%; padding-top:100%; position:relative;
@@ -223,6 +254,8 @@ body.dark-mode .styled-table input[type="text"] {
   color:#009879;
   margin-bottom:8px;
   transition:color .3s;
+  position:relative;
+  cursor:pointer;
 }
 body.dark-mode .category {
   color:#4fd6a5;
@@ -234,7 +267,7 @@ body.dark-mode .category {
   width:100%;
 }
 
-/* Pop‑fill animation */
+/* Pop-fill animation */
 @keyframes pop-fill {
   0%   { transform:scale(1) }
   50%  { transform:scale(1.15) }
@@ -297,10 +330,6 @@ body.dark-mode .bonus-box {
 }
 
 /* 10. CATEGORY DESCRIPTION TOOLTIP */
-.category {
-  position:relative;
-  cursor:pointer;
-}
 .category-tooltip {
   position:absolute;
   left:50%; top:100%;
@@ -332,13 +361,11 @@ body.dark-mode .bonus-box {
 /* 11. COLOR PALETTE SWATCHES */
 #color-palette {
   display:flex;
-  flex-wrap:wrap;
   align-items:center;
   gap:6px;
-  justify-content:center;
 }
 .color-swatch {
-  width:32px; height:32px;
+  width:36px; height:36px;
   border-radius:50%;
   cursor:pointer;
   border:3px solid transparent;
@@ -357,9 +384,6 @@ body.dark-mode .bonus-box {
 body.dark-mode .color-swatch.active {
   border-color:#fff;
   box-shadow:0 0 0 2px #222, 0 0 0 4px #fff;
-}
-#color-palette input#color-picker {
-  width:32px; height:32px;
 }
 
 /* 12. SCREENSHOT EXPORT OVERRIDES */
