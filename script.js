@@ -1,37 +1,21 @@
 window.addEventListener('DOMContentLoaded', () => {
-  // 1) Palette of 14 curated theme colors (for the form/buttons)
+  // 1) Theme color palette
   const brightColors = [
-    '#FFEBAF', // Vanilla
-    '#4C9DB0', // Moonstone
-    '#19485F', // Ocean
-    '#D9E0A4', // Lime
-    '#F8C61E', // Sunburst
-    '#252C37', // Midnight
-    '#9A0002', // Cherry Cola
-    '#EFE6DE', // Cream Vanilla
-    '#004643', // Cyprus
-    '#F0EDE5', // Sand Dune
-    '#745275', // Lavender Fog
-    '#8AB8C2', // Morning Tide
-    '#0E5FB4', // True Blue
-    '#D8D262'  // Mustard Seed
+    '#FFEBAF', '#4C9DB0', '#19485F', '#D9E0A4', '#F8C61E',
+    '#252C37', '#9A0002', '#EFE6DE', '#004643', '#F0EDE5',
+    '#745275', '#8AB8C2', '#0E5FB4', '#D8D262'
   ];
 
   // 2) Pick a random theme color
   const light = brightColors[Math.floor(Math.random() * brightColors.length)];
 
-  // 3) Compute a darker variant
-  const amt = 30;
+  // 3) Darker variant
   const dark = (() => {
     const n = parseInt(light.slice(1), 16);
-    let r = (n >> 16) & 0xFF;
-    let g = (n >>  8) & 0xFF;
-    let b = (n      ) & 0xFF;
-    r = Math.max(0, r - amt);
-    g = Math.max(0, g - amt);
-    b = Math.max(0, b - amt);
-    return '#' + ((1<<24)|(r<<16)|(g<<8)|b)
-      .toString(16).slice(1).toUpperCase();
+    let r = Math.max(0, ((n >> 16) & 0xFF) - 30);
+    let g = Math.max(0, ((n >> 8)  & 0xFF) - 30);
+    let b = Math.max(0, ((n)       & 0xFF) - 30);
+    return '#' + ((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1).toUpperCase();
   })();
 
   // 4) Text color via luminance
@@ -39,7 +23,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const lum = (0.299*rT + 0.587*gT + 0.114*bT) / 255;
   const textColor = lum > 0.5 ? '#000000' : '#FFFFFF';
 
-  // 5) Apply theme CSS variables
+  // 5) Apply theme
   const root = document.documentElement;
   root.style.setProperty('--slanted-bg-light',   light);
   root.style.setProperty('--slanted-bg-dark',    dark);
@@ -68,7 +52,6 @@ window.addEventListener('DOMContentLoaded', () => {
     return (0.299*r + 0.587*g + 0.114*b) / 255;
   }
 
-  // HSL conversions for contrast color computation
   function hexToHsl(hex) {
     let [r, g, b] = hexToRgb(hex);
     r /= 255; g /= 255; b /= 255;
@@ -92,16 +75,15 @@ window.addEventListener('DOMContentLoaded', () => {
     if (s === 0) {
       r = g = b = l;
     } else {
-      const hue2rgb = (p, q, t) => {
-        if (t < 0) t += 1;
-        if (t > 1) t -= 1;
-        if (t < 1/6) return p + (q - p) * 6 * t;
-        if (t < 1/2) return q;
-        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-        return p;
-      };
       const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
       const p = 2 * l - q;
+      const hue2rgb = (p2, q2, t) => {
+        if (t < 0) t += 1; if (t > 1) t -= 1;
+        if (t < 1/6) return p2 + (q2 - p2) * 6 * t;
+        if (t < 1/2) return q2;
+        if (t < 2/3) return p2 + (q2 - p2) * (2/3 - t) * 6;
+        return p2;
+      };
       r = hue2rgb(p, q, h + 1/3);
       g = hue2rgb(p, q, h);
       b = hue2rgb(p, q, h - 1/3);
@@ -109,15 +91,14 @@ window.addEventListener('DOMContentLoaded', () => {
     return rgbToHex(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
   }
 
-  // Gradient: starts lighter, gets richer/deeper
+  // Gradient: lighter → deeper
   function gradientColor(baseHex, j, total) {
     if (total <= 1) return baseHex;
     const t = j / (total - 1);
-    const factor = 1.12 - t * 0.24;
-    return adjustBrightness(baseHex, factor);
+    return adjustBrightness(baseHex, 1.12 - t * 0.24);
   }
 
-  // Ensure a color has enough contrast against a background
+  // Ensure contrast against background
   function ensureContrast(fgHex, bgLum, lighten) {
     let fg = fgHex;
     for (let i = 0; i < 15; i++) {
@@ -130,16 +111,19 @@ window.addEventListener('DOMContentLoaded', () => {
     return fg;
   }
 
-  // === CATEGORY COLORS (match theme, ensure contrast) ===
-  // Light mode: darken the theme color enough to read on #f7f7f7
-  const categoryLight = ensureContrast(light, 0.94, false);
-  // Dark mode: lighten it enough to read on #121212
-  const categoryDark = ensureContrast(light, 0.05, true);
+  // === CATEGORY COLORS ===
+  const categoryLight = ensureContrast(light, 0.93, false);
+  const categoryDark  = ensureContrast(light, 0.05, true);
   root.style.setProperty('--category-color', categoryLight);
   root.style.setProperty('--category-color-dark', categoryDark);
 
-  // === 3 CONTRAST FILL COLORS (computed from theme hue) ===
+  // === TITLE GRADIENT — theme color + a hue-rotated complement ===
   const [themeH] = hexToHsl(light);
+  const gradientB = hslToHex((themeH + 150) % 360, 70, 55);
+  root.style.setProperty('--title-gradient-a', categoryLight);
+  root.style.setProperty('--title-gradient-b', gradientB);
+
+  // === 3 CONTRAST FILL SWATCHES ===
   const contrastSwatches = [
     { hex: hslToHex((themeH + 120) % 360, 65, 55), name: 'Contrast A' },
     { hex: hslToHex((themeH + 210) % 360, 65, 55), name: 'Contrast B' },
@@ -149,7 +133,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const palette     = document.getElementById("color-palette");
   const colorPicker = document.getElementById("color-picker");
 
-  // Insert 3 contrast swatches before the color picker
   contrastSwatches.forEach((c, idx) => {
     const el = document.createElement("div");
     el.className = "color-swatch" + (idx === 0 ? " active" : "");
@@ -159,7 +142,7 @@ window.addEventListener('DOMContentLoaded', () => {
     palette.insertBefore(el, colorPicker);
   });
 
-  // 6) Grab DOM elements
+  // === DOM ELEMENTS ===
   const clearButton    = document.getElementById("clear-button");
   const darkModeToggle = document.getElementById("dark-mode-toggle");
   const saveButton     = document.getElementById("save-button");
@@ -168,17 +151,15 @@ window.addEventListener('DOMContentLoaded', () => {
   const bonusBoxes     = Array.from(document.querySelectorAll(".bonus-box"));
   const swatches       = Array.from(palette.querySelectorAll(".color-swatch"));
 
-  // Default fill = first contrast swatch
   let isPointerDown = false,
       didDrag       = false,
       startX        = 0,
       currentColor  = contrastSwatches[0].hex;
 
   colorPicker.value = currentColor;
-
   const DRAG_THRESHOLD = 5;
 
-  // === COLOR PALETTE WIRING ===
+  // === SWATCH WIRING ===
   function setActiveColor(hex, activeSwatch) {
     currentColor = hex;
     colorPicker.value = hex;
@@ -197,7 +178,7 @@ window.addEventListener('DOMContentLoaded', () => {
     swatches.forEach(s => s.classList.remove('active'));
   });
 
-  // === CATEGORY DESCRIPTION TOOLTIPS ===
+  // === CATEGORY TOOLTIPS ===
   const categories = Array.from(document.querySelectorAll(".category[data-desc]"));
   let activeTooltip = null;
 
@@ -214,9 +195,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     cat.addEventListener("touchstart", e => {
       e.preventDefault();
-      if (activeTooltip && activeTooltip !== tip) {
-        activeTooltip.classList.remove("visible");
-      }
+      if (activeTooltip && activeTooltip !== tip) activeTooltip.classList.remove("visible");
       tip.classList.toggle("visible");
       activeTooltip = tip.classList.contains("visible") ? tip : null;
     }, { passive: false });
@@ -229,26 +208,20 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 7) Enable/disable "Save as Image"
+  // === SAVE BUTTON VALIDATION ===
   function checkSave() {
     saveButton.disabled = !inputs.every(i => i.value.trim());
   }
   inputs.forEach(i => i.addEventListener("input", checkSave));
   checkSave();
 
-  // 8) Clear all fills
+  // === CLEAR ===
   clearButton.addEventListener("click", () => {
-    boxes.forEach(b => {
-      b.style.backgroundColor = "";
-      b.classList.remove("filled");
-    });
-    bonusBoxes.forEach(b => {
-      b.style.backgroundColor = "";
-      b.classList.remove("maxed");
-    });
+    boxes.forEach(b => { b.style.backgroundColor = ""; b.classList.remove("filled"); });
+    bonusBoxes.forEach(b => { b.style.backgroundColor = ""; b.classList.remove("maxed"); });
   });
 
-  // 9) Drag-to-paint helper
+  // === DRAG-TO-PAINT ===
   function handlePointerMove(evt) {
     if (!isPointerDown) return;
     const dx = evt.clientX - startX;
@@ -258,15 +231,13 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   document.addEventListener("pointerup", () => isPointerDown = false);
 
-  // 10) Box event wiring
+  // === BOX EVENTS ===
   boxes.forEach((box, idx, arr) => {
     box.tabIndex = 0;
 
     box.addEventListener("pointerdown", e => {
       e.preventDefault();
-      isPointerDown = true;
-      didDrag = false;
-      startX = e.clientX;
+      isPointerDown = true; didDrag = false; startX = e.clientX;
     });
     box.addEventListener("pointermove", handlePointerMove);
     box.addEventListener("pointercancel", () => { isPointerDown = false; didDrag = false; });
@@ -274,13 +245,8 @@ window.addEventListener('DOMContentLoaded', () => {
     box.addEventListener("click", () => {
       if (didDrag) { didDrag = false; return; }
       const row = box.parentNode.querySelectorAll(".box:not(.bonus-box)");
-      const i   = Array.from(row).indexOf(box);
-
-      row.forEach(b => {
-        b.style.backgroundColor = "";
-        b.classList.remove("filled");
-      });
-
+      const i = Array.from(row).indexOf(box);
+      row.forEach(b => { b.style.backgroundColor = ""; b.classList.remove("filled"); });
       const fillCount = i + 1;
       row.forEach((b, j) => {
         if (j <= i) {
@@ -291,22 +257,13 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     box.addEventListener("keydown", e => {
-      if (e.key === " " || e.key === "Enter") {
-        e.preventDefault();
-        box.click();
-      }
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        (arr[idx+1] || arr[0]).focus();
-      }
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        (arr[idx-1] || arr[arr.length-1]).focus();
-      }
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); box.click(); }
+      if (e.key === "ArrowRight") { e.preventDefault(); (arr[idx+1] || arr[0]).focus(); }
+      if (e.key === "ArrowLeft")  { e.preventDefault(); (arr[idx-1] || arr[arr.length-1]).focus(); }
     });
   });
 
-  // 11) Bonus-box toggle
+  // === BONUS BOX ===
   bonusBoxes.forEach(bonus => {
     bonus.tabIndex = 0;
     bonus.addEventListener("click", () => {
@@ -314,27 +271,21 @@ window.addEventListener('DOMContentLoaded', () => {
       bonus.style.backgroundColor = isMaxed ? currentColor : "";
     });
     bonus.addEventListener("keydown", e => {
-      if (e.key === " " || e.key === "Enter") {
-        e.preventDefault();
-        bonus.click();
-      }
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); bonus.click(); }
     });
   });
 
-  // 12) Dark Mode toggle
+  // === DARK MODE ===
   darkModeToggle.addEventListener("click", () => {
     const dm = document.body.classList.toggle("dark-mode");
     darkModeToggle.setAttribute("aria-pressed", dm);
   });
 
-  // 13) Save as Image (flatten for clean export)
+  // === SAVE AS IMAGE ===
   saveButton.addEventListener("click", () => {
-    if (saveButton.disabled) {
-      alert("Please complete before saving");
-      return;
-    }
+    if (saveButton.disabled) return;
     const container = document.getElementById("infograph-container");
-    const controls  = document.getElementById("container");
+    const controls  = document.getElementById("controls-bar");
 
     controls.style.display = "none";
     container.classList.add("exporting");
@@ -342,17 +293,15 @@ window.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(() => {
       document.fonts.ready.then(() =>
         html2canvas(container, {
-          scale: 2,
-          useCORS: true,
-          width: 1200,
-          windowWidth: 1200
+          scale: 2, useCORS: true,
+          width: 1200, windowWidth: 1200
         })
         .then(canvas => {
           controls.style.display = "";
           container.classList.remove("exporting");
           const link = document.createElement("a");
           link.download = "fireside-infograph.png";
-          link.href     = canvas.toDataURL("image/png");
+          link.href = canvas.toDataURL("image/png");
           link.click();
         })
         .catch(err => {
