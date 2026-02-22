@@ -87,7 +87,7 @@ body.dark-mode #infograph-container {
 
 /* --- Swatch base --- */
 .color-swatch {
-  width: 40px; height: 40px;
+  width: 36px; height: 36px;
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid transparent;
@@ -102,32 +102,20 @@ body.dark-mode #infograph-container {
   box-shadow: 0 4px 12px rgba(0,0,0,.18);
 }
 
-/* --- Active state: lift + glow + dot underneath --- */
+/* --- Active state: subtle ring + slight lift --- */
 .color-swatch.active {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 18px currentColor;
-  border-color: transparent;
-}
-.color-swatch.active::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--category-color);
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,.6);
+  box-shadow: 0 3px 10px rgba(0,0,0,.2);
 }
 body.dark-mode .color-swatch.active {
-  box-shadow: 0 6px 18px currentColor;
-}
-body.dark-mode .color-swatch.active::after {
-  background: var(--category-color-dark);
+  border-color: rgba(255,255,255,.35);
+  box-shadow: 0 3px 10px rgba(0,0,0,.4);
 }
 
 /* --- Custom color trigger button (circle with dashed border + edit icon) --- */
 .custom-color-trigger {
-  width: 40px; height: 40px;
+  width: 36px; height: 36px;
   border-radius: 50%;
   border: 2px dashed rgba(0,0,0,.25);
   background: transparent;
@@ -188,9 +176,10 @@ body.dark-mode .controls-sep {
 }
 
 /* =============================================
-   6d. BUTTONS — pill, inner glow, lift on hover
+   6d. BUTTONS — neutral pill, NOT themed
    ============================================= */
-#controls-bar button {
+#controls-bar .controls-actions button,
+#controls-bar .controls-actions .tooltip-wrapper button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -201,11 +190,11 @@ body.dark-mode .controls-sep {
   letter-spacing: 0.01em;
   border: none;
   border-radius: 100px;
-  background: var(--slanted-bg-light);
-  color: var(--slanted-text-color);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.15),
-              0 2px 8px rgba(0,0,0,.1),
-              0 1px 2px rgba(0,0,0,.06);
+  background: #f0f0f0;
+  color: #333;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6),
+              0 2px 8px rgba(0,0,0,.08),
+              0 1px 2px rgba(0,0,0,.05);
   white-space: nowrap;
   cursor: pointer;
   transition: transform .2s var(--ease-out-soft),
@@ -213,31 +202,32 @@ body.dark-mode .controls-sep {
               filter .2s;
   overflow: visible;
 }
-#controls-bar button:hover {
+#controls-bar .controls-actions button:hover {
   transform: translateY(-2px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.15),
-              0 6px 20px rgba(0,0,0,.12),
-              0 2px 6px rgba(0,0,0,.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6),
+              0 6px 20px rgba(0,0,0,.1),
+              0 2px 6px rgba(0,0,0,.06);
 }
-#controls-bar button:active {
+#controls-bar .controls-actions button:active {
   transform: translateY(0) scale(0.97);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.15),
-              0 1px 4px rgba(0,0,0,.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6),
+              0 1px 4px rgba(0,0,0,.08);
   transition-duration: .1s;
 }
-#controls-bar button:focus-visible {
-  outline: 2px solid var(--category-color);
+#controls-bar .controls-actions button:focus-visible {
+  outline: 2px solid #888;
   outline-offset: 2px;
 }
-body.dark-mode #controls-bar button {
-  background: var(--slanted-bg-dark);
-  color: var(--slanted-text-color);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.15),
+/* Dark mode: slightly darker neutral, same consistency */
+body.dark-mode #controls-bar .controls-actions button {
+  background: #2a2a2a;
+  color: #ddd;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08),
               0 2px 8px rgba(0,0,0,.3),
               0 1px 2px rgba(0,0,0,.2);
 }
-body.dark-mode #controls-bar button:hover {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.15),
+body.dark-mode #controls-bar .controls-actions button:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08),
               0 6px 20px rgba(0,0,0,.4),
               0 2px 6px rgba(0,0,0,.3);
 }
@@ -250,7 +240,7 @@ body.dark-mode #controls-bar button:hover {
 }
 
 /* 6f. ICON SIZING */
-#controls-bar button .icon {
+#controls-bar .controls-actions button .icon {
   width: 1.4em; height: 1.4em;
   flex-shrink: 0;
   overflow: visible;
@@ -395,85 +385,147 @@ body.dark-mode .styled-table input[type="text"]:focus {
 }
 
 /* =============================================
-   7b. SPINNER INPUTS
+   7b. PICKER INPUTS — mobile scroll / desktop dropdown
    ============================================= */
-.spinner-input {
-  display: flex;
-  align-items: center;
-  border: 1px solid rgba(0,0,0,.06);
-  border-radius: 10px;
-  background: #e6e6e6;
-  box-shadow:
-    inset 3px 3px 6px rgba(0,0,0,.08),
-    inset -3px -3px 6px rgba(255,255,255,.55);
-  transition: box-shadow .25s var(--ease-out-soft),
-              border-color .25s, background .3s;
-  overflow: hidden;
+.picker-wrap {
+  position: relative;
 }
-.spinner-input:focus-within {
-  border-color: var(--category-color);
-  box-shadow:
-    inset 3px 3px 6px rgba(0,0,0,.1),
-    inset -3px -3px 6px rgba(255,255,255,.6),
-    0 0 0 3px rgba(0,152,121,.15);
-}
-body.dark-mode .spinner-input {
-  background: #2c2c2c;
-  border-color: rgba(255,255,255,.05);
-  box-shadow:
-    inset 3px 3px 6px rgba(0,0,0,.3),
-    inset -3px -3px 6px rgba(255,255,255,.03);
-}
-body.dark-mode .spinner-input:focus-within {
-  border-color: var(--category-color-dark);
-  box-shadow:
-    inset 3px 3px 6px rgba(0,0,0,.35),
-    inset -3px -3px 6px rgba(255,255,255,.04),
-    0 0 0 3px rgba(79,214,165,.15);
-}
-
-/* Inner input inside spinner */
-.spinner-input input[type="text"] {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  text-align: center;
-  flex: 1;
-  min-width: 0;
-  padding: 10px 4px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  font-size: 1rem;
-  color: #222;
-  outline: none;
-}
-body.dark-mode .spinner-input input[type="text"] {
-  color: #eee;
-}
-
-/* Spinner buttons */
-.spinner-btn {
-  background: none !important;
-  border: none !important;
-  padding: 6px 8px;
+.picker-wrap input[type="text"] {
+  width: 100%;
   cursor: pointer;
-  opacity: 0.4;
-  display: inline-flex;
-  align-items: center;
+}
+
+/* Dropdown panel (desktop) */
+.picker-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  z-index: 100;
+  scrollbar-width: thin;
+}
+.picker-dropdown.open {
+  display: block;
+}
+.picker-dropdown .picker-option {
+  padding: 10px 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: .95rem;
+  cursor: pointer;
+  transition: background .15s;
+}
+.picker-dropdown .picker-option:hover {
+  background: rgba(0,0,0,.06);
+}
+.picker-dropdown .picker-option.selected {
+  font-weight: 600;
+  color: var(--category-color);
+}
+body.dark-mode .picker-dropdown {
+  background: #2a2a2a;
+  border-color: rgba(255,255,255,.1);
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+}
+body.dark-mode .picker-dropdown .picker-option:hover {
+  background: rgba(255,255,255,.08);
+}
+body.dark-mode .picker-dropdown .picker-option.selected {
+  color: var(--category-color-dark);
+}
+
+/* Mobile: bottom sheet scroll picker overlay */
+.picker-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,.4);
+  align-items: flex-end;
   justify-content: center;
-  color: inherit;
-  transition: opacity .2s, transform .15s var(--ease-out-soft);
-  flex-shrink: 0;
-  box-shadow: none !important;
 }
-.spinner-btn:hover {
-  opacity: 0.8;
+.picker-overlay.open {
+  display: flex;
 }
-body.dark-mode .spinner-btn {
-  opacity: 0.4;
+.picker-sheet {
+  width: 100%;
+  max-width: 500px;
+  max-height: 50vh;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: sheetUp .3s var(--ease-out-expo);
 }
-body.dark-mode .spinner-btn:hover {
-  opacity: 0.8;
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+body.dark-mode .picker-sheet {
+  background: #1e1e1e;
+}
+.picker-sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: .9rem;
+}
+body.dark-mode .picker-sheet-header {
+  border-color: rgba(255,255,255,.08);
+  color: #ddd;
+}
+.picker-sheet-done {
+  background: none;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: .9rem;
+  color: var(--category-color);
+  cursor: pointer;
+  padding: 4px 12px;
+}
+body.dark-mode .picker-sheet-done {
+  color: var(--category-color-dark);
+}
+.picker-sheet-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  flex: 1;
+}
+.picker-sheet-scroll .picker-option {
+  padding: 14px 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.05rem;
+  cursor: pointer;
+  text-align: center;
+  transition: background .15s;
+}
+.picker-sheet-scroll .picker-option:active {
+  background: rgba(0,0,0,.06);
+}
+.picker-sheet-scroll .picker-option.selected {
+  font-weight: 700;
+  color: var(--category-color);
+}
+body.dark-mode .picker-sheet-scroll .picker-option {
+  color: #ddd;
+}
+body.dark-mode .picker-sheet-scroll .picker-option:active {
+  background: rgba(255,255,255,.06);
+}
+body.dark-mode .picker-sheet-scroll .picker-option.selected {
+  color: var(--category-color-dark);
 }
 
 /* 8. ASPECT-RATIO FALLBACK */
@@ -532,10 +584,12 @@ body.dark-mode .category {
   background: #fff;
   border: 2px solid var(--slanted-bg-light);
   border-radius: 8px;
-  transition: background-color .2s, border-color .2s,
+  transition: background-color .15s, border-color .2s,
               box-shadow .2s var(--ease-out-soft),
               transform .15s var(--ease-out-soft);
   touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .box:hover {
   transform: translateY(-2px);
@@ -639,16 +693,10 @@ body.dark-mode .bonus-box {
   box-shadow: none !important;
   background: transparent !important;
 }
-#infograph-container.exporting .spinner-input {
-  box-shadow: none !important;
-  border: 1px solid #bbb !important;
-  background: #f0f0f0 !important;
+#infograph-container.exporting .picker-dropdown {
+  display: none !important;
 }
 body.dark-mode #infograph-container.exporting .styled-table input[type="text"] {
-  background: #333 !important;
-  border-color: #555 !important;
-}
-body.dark-mode #infograph-container.exporting .spinner-input {
   background: #333 !important;
   border-color: #555 !important;
 }

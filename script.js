@@ -117,6 +117,12 @@ window.addEventListener('DOMContentLoaded', () => {
   root.style.setProperty('--category-color', categoryLight);
   root.style.setProperty('--category-color-dark', categoryDark);
 
+  // === DARK MODE — lighten theme for better contrast ===
+  // Compute a lightened variant of the theme for dark mode table bg
+  const [dH, dS, dL] = hexToHsl(dark);
+  const darkLightened = hslToHex(dH, Math.min(dS, 40), Math.max(dL + 15, 25));
+  root.style.setProperty('--slanted-bg-dark', darkLightened);
+
   // === TITLE GRADIENT — theme color + a hue-rotated complement ===
   const [themeH] = hexToHsl(light);
   const gradientB = hslToHex((themeH + 150) % 360, 70, 55);
@@ -138,7 +144,6 @@ window.addEventListener('DOMContentLoaded', () => {
     el.className = "color-swatch" + (idx === 0 ? " active" : "");
     el.dataset.color = c.hex;
     el.style.background = c.hex;
-    el.style.setProperty('--swatch-glow', c.hex);
     el.title = c.name;
     palette.insertBefore(el, colorPicker);
   });
@@ -153,23 +158,15 @@ window.addEventListener('DOMContentLoaded', () => {
   const bonusBoxes     = Array.from(document.querySelectorAll(".bonus-box"));
   const swatches       = Array.from(palette.querySelectorAll(".color-swatch"));
 
-  let isPointerDown = false,
-      didDrag       = false,
-      startX        = 0,
-      currentColor  = contrastSwatches[0].hex;
-
+  let currentColor  = contrastSwatches[0].hex;
   colorPicker.value = currentColor;
-  const DRAG_THRESHOLD = 5;
 
   // === SWATCH WIRING ===
   function setActiveColor(hex, activeSwatch) {
     currentColor = hex;
     colorPicker.value = hex;
     swatches.forEach(s => s.classList.remove('active'));
-    if (activeSwatch) {
-      activeSwatch.classList.add('active');
-      activeSwatch.style.setProperty('--swatch-glow', hex);
-    }
+    if (activeSwatch) activeSwatch.classList.add('active');
   }
 
   swatches.forEach(swatch => {
@@ -178,80 +175,155 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // === CUSTOM COLOR BUTTON ===
-  customColorBtn.addEventListener("click", () => {
+  // === CUSTOM COLOR BUTTON — FIX: wire click properly ===
+  customColorBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
     colorPicker.click();
   });
 
   colorPicker.addEventListener("input", e => {
     currentColor = e.target.value;
     swatches.forEach(s => s.classList.remove('active'));
+    // Tint the custom button to show the chosen color
+    customColorBtn.style.borderColor = e.target.value;
+    customColorBtn.style.color = e.target.value;
   });
 
-  // === SPINNER INPUTS ===
+  // === DETECT MOBILE (for picker behavior) ===
+  const isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+  // === PICKER INPUTS (Age / MBTI) ===
   const mbtiOptions = ['Unknown', 'ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
   const ageOptions = Array.from({ length: 82 }, (_, i) => String(18 + i));
 
-  const spinnerConfigs = {
-    age:  { options: ageOptions,  currentIndex: -1 },
-    mbti: { options: mbtiOptions, currentIndex: -1 }
+  const pickerConfigs = {
+    age:  { options: ageOptions,  label: 'Age', selected: '' },
+    mbti: { options: mbtiOptions, label: 'Personality Type', selected: '' }
   };
 
-  document.querySelectorAll('.spinner-input').forEach(wrapper => {
-    const key   = wrapper.dataset.spinner;
-    const config = spinnerConfigs[key];
+  document.querySelectorAll('.picker-wrap').forEach(wrapper => {
+    const key = wrapper.dataset.picker;
+    const config = pickerConfigs[key];
     if (!config) return;
 
-    const input   = wrapper.querySelector('input');
-    const prevBtn = wrapper.querySelector('.spinner-prev');
-    const nextBtn = wrapper.querySelector('.spinner-next');
+    const input    = wrapper.querySelector('input');
+    const dropdown = wrapper.querySelector('.picker-dropdown');
 
-    function applyValue() {
-      if (config.currentIndex === -1) {
-        input.value = "";
-      } else {
-        input.value = config.options[config.currentIndex];
-      }
-      checkSave();
+    // Populate dropdown options
+    config.options.forEach(opt => {
+      const div = document.createElement('div');
+      div.className = 'picker-option';
+      div.textContent = opt;
+      div.dataset.value = opt;
+      dropdown.appendChild(div);
+    });
+
+    if (isMobile) {
+      // === MOBILE: bottom sheet overlay ===
+      const overlay = document.createElement('div');
+      overlay.className = 'picker-overlay';
+      overlay.innerHTML = `
+        <div class="picker-sheet">
+          <div class="picker-sheet-header">
+            <span>${config.label}</span>
+            <button class="picker-sheet-done" type="button">Done</button>
+          </div>
+          <div class="picker-sheet-scroll"></div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      const scrollContainer = overlay.querySelector('.picker-sheet-scroll');
+      const doneBtn = overlay.querySelector('.picker-sheet-done');
+
+      config.options.forEach(opt => {
+        const div = document.createElement('div');
+        div.className = 'picker-option';
+        div.textContent = opt;
+        div.dataset.value = opt;
+        scrollContainer.appendChild(div);
+      });
+
+      input.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Mark current selection
+        scrollContainer.querySelectorAll('.picker-option').forEach(o => {
+          o.classList.toggle('selected', o.dataset.value === config.selected);
+        });
+        overlay.classList.add('open');
+        // Scroll to selected item
+        const sel = scrollContainer.querySelector('.picker-option.selected');
+        if (sel) sel.scrollIntoView({ block: 'center' });
+      });
+
+      scrollContainer.addEventListener('click', (e) => {
+        const opt = e.target.closest('.picker-option');
+        if (!opt) return;
+        config.selected = opt.dataset.value;
+        input.value = config.selected;
+        scrollContainer.querySelectorAll('.picker-option').forEach(o => {
+          o.classList.toggle('selected', o.dataset.value === config.selected);
+        });
+        checkSave();
+      });
+
+      doneBtn.addEventListener('click', () => {
+        overlay.classList.remove('open');
+      });
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('open');
+      });
+    } else {
+      // === DESKTOP: dropdown on click ===
+      input.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Close other dropdowns
+        document.querySelectorAll('.picker-dropdown.open').forEach(d => {
+          if (d !== dropdown) d.classList.remove('open');
+        });
+        // Mark current selection
+        dropdown.querySelectorAll('.picker-option').forEach(o => {
+          o.classList.toggle('selected', o.dataset.value === config.selected);
+        });
+        dropdown.classList.toggle('open');
+        // Scroll to selected
+        const sel = dropdown.querySelector('.picker-option.selected');
+        if (sel) sel.scrollIntoView({ block: 'center' });
+      });
+
+      dropdown.addEventListener('click', (e) => {
+        const opt = e.target.closest('.picker-option');
+        if (!opt) return;
+        config.selected = opt.dataset.value;
+        input.value = config.selected;
+        dropdown.querySelectorAll('.picker-option').forEach(o => {
+          o.classList.toggle('selected', o.dataset.value === config.selected);
+        });
+        dropdown.classList.remove('open');
+        checkSave();
+      });
+
+      // Also support wheel on the input for desktop
+      wrapper.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const idx = config.options.indexOf(config.selected);
+        let next;
+        if (e.deltaY > 0) {
+          next = (idx === -1 || idx >= config.options.length - 1) ? 0 : idx + 1;
+        } else {
+          next = (idx <= 0) ? config.options.length - 1 : idx - 1;
+        }
+        config.selected = config.options[next];
+        input.value = config.selected;
+        checkSave();
+      }, { passive: false });
     }
+  });
 
-    prevBtn.addEventListener('click', () => {
-      if (config.currentIndex <= 0) {
-        config.currentIndex = config.options.length - 1;
-      } else {
-        config.currentIndex--;
-      }
-      applyValue();
-    });
-
-    nextBtn.addEventListener('click', () => {
-      if (config.currentIndex === -1 || config.currentIndex >= config.options.length - 1) {
-        config.currentIndex = 0;
-      } else {
-        config.currentIndex++;
-      }
-      applyValue();
-    });
-
-    wrapper.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      if (e.deltaY > 0) {
-        // scroll down = next
-        if (config.currentIndex === -1 || config.currentIndex >= config.options.length - 1) {
-          config.currentIndex = 0;
-        } else {
-          config.currentIndex++;
-        }
-      } else {
-        // scroll up = prev
-        if (config.currentIndex <= 0) {
-          config.currentIndex = config.options.length - 1;
-        } else {
-          config.currentIndex--;
-        }
-      }
-      applyValue();
-    }, { passive: false });
+  // Close desktop dropdowns on outside click
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.picker-dropdown.open').forEach(d => d.classList.remove('open'));
   });
 
   // === CATEGORY TOOLTIPS ===
@@ -297,39 +369,88 @@ window.addEventListener('DOMContentLoaded', () => {
     bonusBoxes.forEach(b => { b.style.backgroundColor = ""; b.classList.remove("maxed"); });
   });
 
-  // === DRAG-TO-PAINT ===
-  function handlePointerMove(evt) {
-    if (!isPointerDown) return;
-    const dx = evt.clientX - startX;
-    if (Math.abs(dx) < DRAG_THRESHOLD) return;
-    didDrag = true;
-    evt.currentTarget.style.backgroundColor = dx > 0 ? currentColor : "";
+  // === TOUCH-SLIDE FILL (mobile) + CLICK FILL (desktop) ===
+  // Helper: fill boxes up to index in a row
+  function fillRowUpTo(row, upToIdx) {
+    const rowBoxes = Array.from(row.querySelectorAll(".box:not(.bonus-box)"));
+    const fillCount = upToIdx + 1;
+    rowBoxes.forEach((b, j) => {
+      if (j <= upToIdx) {
+        b.style.backgroundColor = gradientColor(currentColor, j, fillCount);
+        if (!b.classList.contains("filled")) b.classList.add("filled");
+      } else {
+        b.style.backgroundColor = "";
+        b.classList.remove("filled");
+      }
+    });
   }
-  document.addEventListener("pointerup", () => isPointerDown = false);
 
-  // === BOX EVENTS ===
+  // Helper: clear all boxes in a row
+  function clearRow(row) {
+    const rowBoxes = Array.from(row.querySelectorAll(".box:not(.bonus-box)"));
+    rowBoxes.forEach(b => {
+      b.style.backgroundColor = "";
+      b.classList.remove("filled");
+    });
+  }
+
+  // Track touch state for smooth slide fill
+  let touchRow = null;
+  let lastTouchIdx = -1;
+
   boxes.forEach((box, idx, arr) => {
     box.tabIndex = 0;
 
-    box.addEventListener("pointerdown", e => {
+    // === TOUCH EVENTS — smooth slide to fill/unfill ===
+    box.addEventListener("touchstart", e => {
       e.preventDefault();
-      isPointerDown = true; didDrag = false; startX = e.clientX;
-    });
-    box.addEventListener("pointermove", handlePointerMove);
-    box.addEventListener("pointercancel", () => { isPointerDown = false; didDrag = false; });
+      const row = box.closest('.boxes');
+      touchRow = row;
+      const rowBoxes = Array.from(row.querySelectorAll(".box:not(.bonus-box)"));
+      const i = rowBoxes.indexOf(box);
+      lastTouchIdx = i;
+      fillRowUpTo(row, i);
+    }, { passive: false });
 
+    box.addEventListener("touchmove", e => {
+      e.preventDefault();
+      if (!touchRow) return;
+      const touch = e.touches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (!el) return;
+      const targetBox = el.closest('.box:not(.bonus-box)');
+      if (!targetBox) return;
+      const row = targetBox.closest('.boxes');
+      if (row !== touchRow) return;
+      const rowBoxes = Array.from(row.querySelectorAll(".box:not(.bonus-box)"));
+      const i = rowBoxes.indexOf(targetBox);
+      if (i === -1 || i === lastTouchIdx) return;
+      lastTouchIdx = i;
+      fillRowUpTo(row, i);
+    }, { passive: false });
+
+    box.addEventListener("touchend", () => {
+      touchRow = null;
+      lastTouchIdx = -1;
+    });
+
+    box.addEventListener("touchcancel", () => {
+      touchRow = null;
+      lastTouchIdx = -1;
+    });
+
+    // === CLICK (desktop) — tap fills all up to clicked box ===
     box.addEventListener("click", () => {
-      if (didDrag) { didDrag = false; return; }
-      const row = box.parentNode.querySelectorAll(".box:not(.bonus-box)");
-      const i = Array.from(row).indexOf(box);
-      row.forEach(b => { b.style.backgroundColor = ""; b.classList.remove("filled"); });
-      const fillCount = i + 1;
-      row.forEach((b, j) => {
-        if (j <= i) {
-          b.style.backgroundColor = gradientColor(currentColor, j, fillCount);
-          b.classList.add("filled");
-        }
-      });
+      const row = box.closest('.boxes');
+      const rowBoxes = Array.from(row.querySelectorAll(".box:not(.bonus-box)"));
+      const i = rowBoxes.indexOf(box);
+      // If clicking the same last filled box, toggle off
+      const currentlyFilled = rowBoxes.filter(b => b.classList.contains("filled")).length;
+      if (currentlyFilled === i + 1) {
+        clearRow(row);
+      } else {
+        fillRowUpTo(row, i);
+      }
     });
 
     box.addEventListener("keydown", e => {
