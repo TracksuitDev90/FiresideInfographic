@@ -91,7 +91,7 @@ window.addEventListener('DOMContentLoaded', () => {
     return rgbToHex(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
   }
 
-  // Gradient: lighter → deeper
+  // Gradient: lighter -> deeper
   function gradientColor(baseHex, j, total) {
     if (total <= 1) return baseHex;
     const t = j / (total - 1);
@@ -138,6 +138,7 @@ window.addEventListener('DOMContentLoaded', () => {
     el.className = "color-swatch" + (idx === 0 ? " active" : "");
     el.dataset.color = c.hex;
     el.style.background = c.hex;
+    el.style.setProperty('--swatch-glow', c.hex);
     el.title = c.name;
     palette.insertBefore(el, colorPicker);
   });
@@ -146,6 +147,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const clearButton    = document.getElementById("clear-button");
   const darkModeToggle = document.getElementById("dark-mode-toggle");
   const saveButton     = document.getElementById("save-button");
+  const customColorBtn = document.getElementById("custom-color-btn");
   const inputs         = Array.from(document.querySelectorAll("#input-fields input"));
   const boxes          = Array.from(document.querySelectorAll(".box:not(.bonus-box)"));
   const bonusBoxes     = Array.from(document.querySelectorAll(".bonus-box"));
@@ -164,7 +166,10 @@ window.addEventListener('DOMContentLoaded', () => {
     currentColor = hex;
     colorPicker.value = hex;
     swatches.forEach(s => s.classList.remove('active'));
-    if (activeSwatch) activeSwatch.classList.add('active');
+    if (activeSwatch) {
+      activeSwatch.classList.add('active');
+      activeSwatch.style.setProperty('--swatch-glow', hex);
+    }
   }
 
   swatches.forEach(swatch => {
@@ -173,9 +178,80 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // === CUSTOM COLOR BUTTON ===
+  customColorBtn.addEventListener("click", () => {
+    colorPicker.click();
+  });
+
   colorPicker.addEventListener("input", e => {
     currentColor = e.target.value;
     swatches.forEach(s => s.classList.remove('active'));
+  });
+
+  // === SPINNER INPUTS ===
+  const mbtiOptions = ['Unknown', 'ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
+  const ageOptions = Array.from({ length: 82 }, (_, i) => String(18 + i));
+
+  const spinnerConfigs = {
+    age:  { options: ageOptions,  currentIndex: -1 },
+    mbti: { options: mbtiOptions, currentIndex: -1 }
+  };
+
+  document.querySelectorAll('.spinner-input').forEach(wrapper => {
+    const key   = wrapper.dataset.spinner;
+    const config = spinnerConfigs[key];
+    if (!config) return;
+
+    const input   = wrapper.querySelector('input');
+    const prevBtn = wrapper.querySelector('.spinner-prev');
+    const nextBtn = wrapper.querySelector('.spinner-next');
+
+    function applyValue() {
+      if (config.currentIndex === -1) {
+        input.value = "";
+      } else {
+        input.value = config.options[config.currentIndex];
+      }
+      checkSave();
+    }
+
+    prevBtn.addEventListener('click', () => {
+      if (config.currentIndex <= 0) {
+        config.currentIndex = config.options.length - 1;
+      } else {
+        config.currentIndex--;
+      }
+      applyValue();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (config.currentIndex === -1 || config.currentIndex >= config.options.length - 1) {
+        config.currentIndex = 0;
+      } else {
+        config.currentIndex++;
+      }
+      applyValue();
+    });
+
+    wrapper.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      if (e.deltaY > 0) {
+        // scroll down = next
+        if (config.currentIndex === -1 || config.currentIndex >= config.options.length - 1) {
+          config.currentIndex = 0;
+        } else {
+          config.currentIndex++;
+        }
+      } else {
+        // scroll up = prev
+        if (config.currentIndex <= 0) {
+          config.currentIndex = config.options.length - 1;
+        } else {
+          config.currentIndex--;
+        }
+      }
+      applyValue();
+    }, { passive: false });
   });
 
   // === CATEGORY TOOLTIPS ===
