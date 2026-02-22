@@ -76,74 +76,104 @@ body.dark-mode #infograph-container {
   margin: 24px 0 40px;
 }
 
-/* 6a. COLOR PALETTE — swatches + picker */
+/* =============================================
+   6a. COLOR PALETTE — 3 swatches + custom picker
+   ============================================= */
 #color-palette {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
+
+/* --- Swatch base --- */
 .color-swatch {
   width: 40px; height: 40px;
   border-radius: 50%;
   cursor: pointer;
-  border: 3px solid transparent;
+  border: 2px solid transparent;
   box-shadow: 0 2px 6px rgba(0,0,0,.12);
-  transition: transform .2s var(--ease-out-soft),
-              box-shadow .2s var(--ease-out-soft),
+  position: relative;
+  transition: transform .25s var(--ease-out-soft),
+              box-shadow .25s var(--ease-out-soft),
               border-color .2s;
 }
 .color-swatch:hover {
   transform: scale(1.08);
   box-shadow: 0 4px 12px rgba(0,0,0,.18);
 }
+
+/* --- Active state: lift + glow + dot underneath --- */
 .color-swatch.active {
-  border-color: var(--category-color);
-  box-shadow: 0 0 0 2px #fff, 0 0 0 5px var(--category-color);
-  transform: scale(1.08);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px currentColor;
+  border-color: transparent;
+}
+.color-swatch.active::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--category-color);
 }
 body.dark-mode .color-swatch.active {
-  box-shadow: 0 0 0 2px #1a1a1a, 0 0 0 5px var(--category-color-dark);
-  border-color: var(--category-color-dark);
+  box-shadow: 0 6px 18px currentColor;
+}
+body.dark-mode .color-swatch.active::after {
+  background: var(--category-color-dark);
 }
 
-/* Color picker as 4th "swatch" */
-#color-palette input#color-picker {
-  -webkit-appearance: none; appearance: none;
+/* --- Custom color trigger button (circle with dashed border + edit icon) --- */
+.custom-color-trigger {
   width: 40px; height: 40px;
-  border: 2px dashed rgba(0,0,0,.25);
   border-radius: 50%;
+  border: 2px dashed rgba(0,0,0,.25);
   background: transparent;
   cursor: pointer;
-  overflow: hidden; padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: rgba(0,0,0,.45);
   transition: transform .2s var(--ease-out-soft),
               box-shadow .2s var(--ease-out-soft),
-              border-color .2s;
+              border-color .2s,
+              color .2s;
 }
-#color-palette input#color-picker:hover {
+.custom-color-trigger:hover {
   transform: scale(1.08);
   box-shadow: 0 4px 12px rgba(0,0,0,.18);
   border-color: rgba(0,0,0,.4);
+  color: rgba(0,0,0,.7);
 }
-body.dark-mode #color-palette input#color-picker {
+body.dark-mode .custom-color-trigger {
   border-color: rgba(255,255,255,.25);
+  color: rgba(255,255,255,.45);
 }
-body.dark-mode #color-palette input#color-picker:hover {
+body.dark-mode .custom-color-trigger:hover {
   border-color: rgba(255,255,255,.5);
+  color: rgba(255,255,255,.7);
 }
-#color-palette input#color-picker::-webkit-color-swatch-wrapper {
-  padding: 0; border-radius: 50%; overflow: hidden;
-}
-#color-palette input#color-picker::-webkit-color-swatch {
-  border: none; border-radius: 0;
-}
-#color-palette input#color-picker::-moz-color-swatch {
-  border: none; border-radius: 0;
+
+/* Hidden native color picker */
+#color-palette input#color-picker {
+  -webkit-appearance: none; appearance: none;
+  width: 0; height: 0;
+  border: none;
+  padding: 0; margin: 0;
+  overflow: hidden;
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
 }
 
 /* 6b. SEPARATOR */
 .controls-sep {
-  width: 1px; height: 28px;
+  width: 2px; height: 32px;
   background: rgba(0,0,0,.15);
+  border-radius: 1px;
   flex-shrink: 0;
 }
 body.dark-mode .controls-sep {
@@ -157,7 +187,9 @@ body.dark-mode .controls-sep {
   gap: 8px;
 }
 
-/* 6d. BUTTONS — pill, lift on hover, press on active */
+/* =============================================
+   6d. BUTTONS — pill, inner glow, lift on hover
+   ============================================= */
 #controls-bar button {
   display: inline-flex;
   align-items: center;
@@ -171,7 +203,9 @@ body.dark-mode .controls-sep {
   border-radius: 100px;
   background: var(--slanted-bg-light);
   color: var(--slanted-text-color);
-  box-shadow: 0 2px 8px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.15),
+              0 2px 8px rgba(0,0,0,.1),
+              0 1px 2px rgba(0,0,0,.06);
   white-space: nowrap;
   cursor: pointer;
   transition: transform .2s var(--ease-out-soft),
@@ -181,11 +215,14 @@ body.dark-mode .controls-sep {
 }
 #controls-bar button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.15),
+              0 6px 20px rgba(0,0,0,.12),
+              0 2px 6px rgba(0,0,0,.08);
 }
 #controls-bar button:active {
   transform: translateY(0) scale(0.97);
-  box-shadow: 0 1px 4px rgba(0,0,0,.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.15),
+              0 1px 4px rgba(0,0,0,.1);
   transition-duration: .1s;
 }
 #controls-bar button:focus-visible {
@@ -195,10 +232,14 @@ body.dark-mode .controls-sep {
 body.dark-mode #controls-bar button {
   background: var(--slanted-bg-dark);
   color: var(--slanted-text-color);
-  box-shadow: 0 2px 8px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.15),
+              0 2px 8px rgba(0,0,0,.3),
+              0 1px 2px rgba(0,0,0,.2);
 }
 body.dark-mode #controls-bar button:hover {
-  box-shadow: 0 6px 20px rgba(0,0,0,.4), 0 2px 6px rgba(0,0,0,.3);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.15),
+              0 6px 20px rgba(0,0,0,.4),
+              0 2px 6px rgba(0,0,0,.3);
 }
 
 /* 6e. DISABLED SAVE */
@@ -210,7 +251,7 @@ body.dark-mode #controls-bar button:hover {
 
 /* 6f. ICON SIZING */
 #controls-bar button .icon {
-  width: 1.3em; height: 1.3em;
+  width: 1.4em; height: 1.4em;
   flex-shrink: 0;
   overflow: visible;
 }
@@ -224,7 +265,10 @@ body.dark-mode .label-moon { display: none; }
 #dark-mode-toggle .icon-moon { fill: #E8B730; }
 #dark-mode-toggle .icon-sun  { fill: #F28C28; }
 
-/* 6h. TOOLTIP */
+/* =============================================
+   6h. TOOLTIP — only visible when save disabled,
+        with arrow/triangle pointing down
+   ============================================= */
 .tooltip-wrapper {
   position: relative;
   display: inline-block;
@@ -239,9 +283,22 @@ body.dark-mode .label-moon { display: none; }
   transition: opacity .2s, transform .2s var(--ease-out-soft);
   pointer-events: none;
 }
+/* Arrow/triangle pointing down toward the button */
+.tooltip-wrapper .tooltip-text::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0,0,0,.8);
+}
 .tooltip-wrapper:hover .tooltip-text {
   visibility: visible; opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+/* Hide tooltip when save button is NOT disabled */
+#save-button:not(:disabled) + .tooltip-text {
+  display: none !important;
 }
 
 /* 7. SLANTED FORM */
@@ -269,10 +326,23 @@ body.dark-mode .styled-table {
   background: var(--slanted-bg-dark);
 }
 
-/* 7a. FORM FIELDS — neomorphic design */
+/* =============================================
+   7a. FORM FIELDS — card treatment (depth)
+   ============================================= */
 .styled-table .field {
   display: flex; flex-direction: column;
+  background: rgba(255,255,255,.4);
+  padding: 12px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  transition: background .3s, box-shadow .3s;
 }
+body.dark-mode .styled-table .field {
+  background: rgba(255,255,255,.04);
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+}
+
+/* Labels */
 .styled-table label {
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
@@ -283,6 +353,8 @@ body.dark-mode .styled-table {
   color: var(--slanted-text-color);
   opacity: .8;
 }
+
+/* Neomorphic text inputs */
 .styled-table input[type="text"] {
   padding: 10px 14px;
   font-family: 'Inter', sans-serif;
@@ -320,6 +392,88 @@ body.dark-mode .styled-table input[type="text"]:focus {
     inset 3px 3px 6px rgba(0,0,0,.35),
     inset -3px -3px 6px rgba(255,255,255,.04),
     0 0 0 3px rgba(79,214,165,.15);
+}
+
+/* =============================================
+   7b. SPINNER INPUTS
+   ============================================= */
+.spinner-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 10px;
+  background: #e6e6e6;
+  box-shadow:
+    inset 3px 3px 6px rgba(0,0,0,.08),
+    inset -3px -3px 6px rgba(255,255,255,.55);
+  transition: box-shadow .25s var(--ease-out-soft),
+              border-color .25s, background .3s;
+  overflow: hidden;
+}
+.spinner-input:focus-within {
+  border-color: var(--category-color);
+  box-shadow:
+    inset 3px 3px 6px rgba(0,0,0,.1),
+    inset -3px -3px 6px rgba(255,255,255,.6),
+    0 0 0 3px rgba(0,152,121,.15);
+}
+body.dark-mode .spinner-input {
+  background: #2c2c2c;
+  border-color: rgba(255,255,255,.05);
+  box-shadow:
+    inset 3px 3px 6px rgba(0,0,0,.3),
+    inset -3px -3px 6px rgba(255,255,255,.03);
+}
+body.dark-mode .spinner-input:focus-within {
+  border-color: var(--category-color-dark);
+  box-shadow:
+    inset 3px 3px 6px rgba(0,0,0,.35),
+    inset -3px -3px 6px rgba(255,255,255,.04),
+    0 0 0 3px rgba(79,214,165,.15);
+}
+
+/* Inner input inside spinner */
+.spinner-input input[type="text"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+  padding: 10px 4px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 1rem;
+  color: #222;
+  outline: none;
+}
+body.dark-mode .spinner-input input[type="text"] {
+  color: #eee;
+}
+
+/* Spinner buttons */
+.spinner-btn {
+  background: none !important;
+  border: none !important;
+  padding: 6px 8px;
+  cursor: pointer;
+  opacity: 0.4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  transition: opacity .2s, transform .15s var(--ease-out-soft);
+  flex-shrink: 0;
+  box-shadow: none !important;
+}
+.spinner-btn:hover {
+  opacity: 0.8;
+}
+body.dark-mode .spinner-btn {
+  opacity: 0.4;
+}
+body.dark-mode .spinner-btn:hover {
+  opacity: 0.8;
 }
 
 /* 8. ASPECT-RATIO FALLBACK */
@@ -481,7 +635,20 @@ body.dark-mode .bonus-box {
   border: 1px solid #bbb !important;
   background: #f0f0f0 !important;
 }
+#infograph-container.exporting .styled-table .field {
+  box-shadow: none !important;
+  background: transparent !important;
+}
+#infograph-container.exporting .spinner-input {
+  box-shadow: none !important;
+  border: 1px solid #bbb !important;
+  background: #f0f0f0 !important;
+}
 body.dark-mode #infograph-container.exporting .styled-table input[type="text"] {
+  background: #333 !important;
+  border-color: #555 !important;
+}
+body.dark-mode #infograph-container.exporting .spinner-input {
   background: #333 !important;
   border-color: #555 !important;
 }
