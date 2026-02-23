@@ -139,11 +139,12 @@ window.addEventListener('DOMContentLoaded', () => {
   const darkLightened = hslToHex(dH, Math.min(dS, 40), Math.max(dL + 15, 25));
   root.style.setProperty('--slanted-bg-dark', darkLightened);
 
-  // === TITLE GRADIENT — theme color + a hue-rotated complement ===
+  // === TITLE COLOR — 10% darker (light mode) / 10% lighter (dark mode) ===
   const [themeH] = hexToHsl(light);
-  const gradientB = hslToHex((themeH + 150) % 360, 70, 55);
-  root.style.setProperty('--title-gradient-a', categoryLight);
-  root.style.setProperty('--title-gradient-b', gradientB);
+  const titleColorLight = adjustBrightness(light, 0.90);
+  const titleColorDark  = adjustBrightness(light, 1.10);
+  root.style.setProperty('--title-color', titleColorLight);
+  root.style.setProperty('--title-color-dark', titleColorDark);
 
   // === THEME WATERMARK in bottom-right of table ===
   const styledTable = document.querySelector('.styled-table');
@@ -158,64 +159,23 @@ window.addEventListener('DOMContentLoaded', () => {
   watermark.style.color = wmColor;
   styledTable.appendChild(watermark);
 
-  // === 3 CONTRAST FILL SWATCHES ===
-  const contrastSwatches = [
-    { hex: hslToHex((themeH + 120) % 360, 65, 55), name: 'Contrast A' },
-    { hex: hslToHex((themeH + 210) % 360, 65, 55), name: 'Contrast B' },
-    { hex: hslToHex((themeH + 300) % 360, 65, 55), name: 'Contrast C' }
-  ];
-
-  const palette     = document.getElementById("color-palette");
+  // === COLOR PICKER (direct spectrum) ===
   const colorPicker = document.getElementById("color-picker");
-
-  contrastSwatches.forEach((c, idx) => {
-    const el = document.createElement("div");
-    el.className = "color-swatch" + (idx === 0 ? " active" : "");
-    el.dataset.color = c.hex;
-    el.style.background = c.hex;
-    el.title = c.name;
-    palette.insertBefore(el, colorPicker);
-  });
 
   // === DOM ELEMENTS ===
   const clearButton    = document.getElementById("clear-button");
   const darkModeToggle = document.getElementById("dark-mode-toggle");
   const saveButton     = document.getElementById("save-button");
-  const customColorBtn = document.getElementById("custom-color-btn");
   const inputs         = Array.from(document.querySelectorAll("#input-fields input"));
   const boxes          = Array.from(document.querySelectorAll(".box:not(.bonus-box)"));
   const bonusBoxes     = Array.from(document.querySelectorAll(".bonus-box"));
-  const swatches       = Array.from(palette.querySelectorAll(".color-swatch"));
 
-  let currentColor  = contrastSwatches[0].hex;
+  // Default fill: a contrasting hue from the theme
+  let currentColor = hslToHex((themeH + 180) % 360, 65, 55);
   colorPicker.value = currentColor;
-
-  // === SWATCH WIRING ===
-  function setActiveColor(hex, activeSwatch) {
-    currentColor = hex;
-    colorPicker.value = hex;
-    swatches.forEach(s => s.classList.remove('active'));
-    if (activeSwatch) activeSwatch.classList.add('active');
-  }
-
-  swatches.forEach(swatch => {
-    swatch.addEventListener("click", () => {
-      setActiveColor(swatch.dataset.color, swatch);
-    });
-  });
-
-  // === CUSTOM COLOR BUTTON — FIX: wire click properly ===
-  customColorBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    colorPicker.click();
-  });
 
   colorPicker.addEventListener("input", e => {
     currentColor = e.target.value;
-    swatches.forEach(s => s.classList.remove('active'));
-    // Tint the custom button to show the chosen color
-    customColorBtn.style.borderColor = e.target.value;
-    customColorBtn.style.color = e.target.value;
   });
 
   // === DETECT MOBILE (for picker behavior) ===
