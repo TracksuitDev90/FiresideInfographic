@@ -1,5 +1,5 @@
 /* 1. TYPEFACES — serif + sans mix */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Montserrat:wght@600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Montserrat:wght@600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Poppins:wght@800;900&display=swap');
 
 /* 2. ROOT CUSTOM PROPERTIES */
 :root {
@@ -8,8 +8,8 @@
   --slanted-text-color:  #000000;
   --category-color:      #009879;
   --category-color-dark: #4fd6a5;
-  --title-gradient-a:    #009879;
-  --title-gradient-b:    #ff6b6b;
+  --title-color:         #333333;
+  --title-color-dark:    #cccccc;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-soft: cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -39,19 +39,20 @@ body.dark-mode {
   }
 }
 
-/* 4. PAGE TITLE — gradient text, dramatic serif */
+/* 4. PAGE TITLE — Poppins extra-bold, solid themed color */
 .page-title {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 900;
   font-size: clamp(2.2rem, 5vw + 0.5rem, 4.2rem);
   letter-spacing: -0.02em;
   line-height: 1.1;
   text-align: center;
   margin: 48px 0 40px;
-  background: linear-gradient(135deg, var(--title-gradient-a), var(--title-gradient-b));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--title-color);
+  transition: color .3s;
+}
+body.dark-mode .page-title {
+  color: var(--title-color-dark);
 }
 
 /* 5. INFOGRAPH CONTAINER */
@@ -77,88 +78,58 @@ body.dark-mode #infograph-container {
 }
 
 /* =============================================
-   6a. COLOR PALETTE — 3 swatches + custom picker
+   6a. COLOR PALETTE — visible native spectrum picker
    ============================================= */
 #color-palette {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+}
+.color-picker-label {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: .8rem;
+  color: #555;
+  letter-spacing: 0.02em;
+}
+body.dark-mode .color-picker-label {
+  color: #aaa;
 }
 
-/* --- Swatch base --- */
-.color-swatch {
-  width: 36px; height: 36px;
+/* Native color input — styled as a visible circle */
+#color-picker {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 38px; height: 38px;
+  border: 2px solid rgba(0,0,0,.12);
   border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid transparent;
-  box-shadow: 0 2px 6px rgba(0,0,0,.12);
-  position: relative;
-  transition: transform .25s var(--ease-out-soft),
-              box-shadow .25s var(--ease-out-soft),
-              border-color .2s;
-}
-.color-swatch:hover {
-  transform: scale(1.08);
-  box-shadow: 0 4px 12px rgba(0,0,0,.18);
-}
-
-/* --- Active state: subtle ring + slight lift --- */
-.color-swatch.active {
-  transform: translateY(-2px);
-  border-color: rgba(255,255,255,.6);
-  box-shadow: 0 3px 10px rgba(0,0,0,.2);
-}
-body.dark-mode .color-swatch.active {
-  border-color: rgba(255,255,255,.35);
-  box-shadow: 0 3px 10px rgba(0,0,0,.4);
-}
-
-/* --- Custom color trigger button (circle with dashed border + edit icon) --- */
-.custom-color-trigger {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  border: 2px dashed rgba(0,0,0,.25);
-  background: transparent;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   padding: 0;
-  color: rgba(0,0,0,.45);
+  cursor: pointer;
+  background: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,.1);
   transition: transform .2s var(--ease-out-soft),
               box-shadow .2s var(--ease-out-soft),
-              border-color .2s,
-              color .2s;
+              border-color .2s;
 }
-.custom-color-trigger:hover {
-  transform: scale(1.08);
-  box-shadow: 0 4px 12px rgba(0,0,0,.18);
-  border-color: rgba(0,0,0,.4);
-  color: rgba(0,0,0,.7);
+#color-picker:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,.16);
 }
-body.dark-mode .custom-color-trigger {
-  border-color: rgba(255,255,255,.25);
-  color: rgba(255,255,255,.45);
+#color-picker::-webkit-color-swatch-wrapper {
+  padding: 2px;
 }
-body.dark-mode .custom-color-trigger:hover {
-  border-color: rgba(255,255,255,.5);
-  color: rgba(255,255,255,.7);
-}
-
-/* Hidden native color picker — positioned behind custom button so .click() works */
-#color-palette {
-  position: relative;
-}
-#color-palette input#color-picker {
-  -webkit-appearance: none; appearance: none;
-  position: absolute;
-  right: 0; bottom: 0;
-  width: 36px; height: 36px;
+#color-picker::-webkit-color-swatch {
   border: none;
-  padding: 0; margin: 0;
-  opacity: 0;
-  pointer-events: none;
-  z-index: -1;
+  border-radius: 50%;
+}
+#color-picker::-moz-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
+body.dark-mode #color-picker {
+  border-color: rgba(255,255,255,.15);
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
 }
 
 /* 6b. SEPARATOR */
@@ -180,10 +151,11 @@ body.dark-mode .controls-sep {
 }
 
 /* =============================================
-   6d. BUTTONS — neutral pill, NOT themed
+   6d. BUTTONS — neutral pill with depth gradients
    ============================================= */
 #controls-bar .controls-actions button,
 #controls-bar .controls-actions .tooltip-wrapper button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -192,48 +164,87 @@ body.dark-mode .controls-sep {
   font-weight: 600;
   font-size: .875rem;
   letter-spacing: 0.01em;
-  border: none;
+  border: 1px solid rgba(0,0,0,.06);
   border-radius: 100px;
-  background: #f0f0f0;
+  /* Base color — gradient overlay goes on top via ::before */
+  background: #ececec;
   color: #333;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.6),
-              0 2px 8px rgba(0,0,0,.08),
-              0 1px 2px rgba(0,0,0,.05);
+  /* Ambient occlusion: soft spread underneath + tight contact shadow */
+  box-shadow: 0 1px 1px rgba(0,0,0,.06),
+              0 3px 8px rgba(0,0,0,.08),
+              0 6px 16px -4px rgba(0,0,0,.06);
   white-space: nowrap;
   cursor: pointer;
   transition: transform .2s var(--ease-out-soft),
-              box-shadow .2s var(--ease-out-soft),
-              filter .2s;
-  overflow: visible;
+              box-shadow .2s var(--ease-out-soft);
+  overflow: hidden;
+  z-index: 0;
+}
+/* Gradient overlay: 10% lighter top 30%, 5% darker bottom 20% */
+#controls-bar .controls-actions button::before,
+#controls-bar .controls-actions .tooltip-wrapper button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,.22) 0%,
+    rgba(255,255,255,.10) 30%,
+    transparent 30%,
+    transparent 80%,
+    rgba(0,0,0,.06) 80%,
+    rgba(0,0,0,.08) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+/* Ensure text/icons stay above the overlay */
+#controls-bar .controls-actions button > *,
+#controls-bar .controls-actions .tooltip-wrapper button > * {
+  position: relative;
+  z-index: 2;
 }
 #controls-bar .controls-actions button:hover {
   transform: translateY(-2px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.6),
-              0 6px 20px rgba(0,0,0,.1),
-              0 2px 6px rgba(0,0,0,.06);
+  box-shadow: 0 2px 4px rgba(0,0,0,.06),
+              0 8px 24px rgba(0,0,0,.1),
+              0 12px 32px -8px rgba(0,0,0,.08);
 }
 #controls-bar .controls-actions button:active {
   transform: translateY(0) scale(0.97);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.6),
-              0 1px 4px rgba(0,0,0,.08);
+  box-shadow: 0 1px 2px rgba(0,0,0,.08),
+              0 2px 6px rgba(0,0,0,.06);
   transition-duration: .1s;
 }
 #controls-bar .controls-actions button:focus-visible {
   outline: 2px solid #888;
   outline-offset: 2px;
 }
-/* Dark mode: slightly darker neutral, same consistency */
+/* Dark mode */
 body.dark-mode #controls-bar .controls-actions button {
   background: #2a2a2a;
   color: #ddd;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08),
-              0 2px 8px rgba(0,0,0,.3),
-              0 1px 2px rgba(0,0,0,.2);
+  border-color: rgba(255,255,255,.06);
+  box-shadow: 0 1px 1px rgba(0,0,0,.2),
+              0 3px 8px rgba(0,0,0,.25),
+              0 6px 16px -4px rgba(0,0,0,.2);
+}
+body.dark-mode #controls-bar .controls-actions button::before {
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,.10) 0%,
+    rgba(255,255,255,.04) 30%,
+    transparent 30%,
+    transparent 80%,
+    rgba(0,0,0,.10) 80%,
+    rgba(0,0,0,.14) 100%
+  );
 }
 body.dark-mode #controls-bar .controls-actions button:hover {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08),
-              0 6px 20px rgba(0,0,0,.4),
-              0 2px 6px rgba(0,0,0,.3);
+  box-shadow: 0 2px 4px rgba(0,0,0,.3),
+              0 8px 24px rgba(0,0,0,.35),
+              0 12px 32px -8px rgba(0,0,0,.25);
 }
 
 /* 6e. DISABLED SAVE */
