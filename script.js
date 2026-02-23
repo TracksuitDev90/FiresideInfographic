@@ -1,13 +1,29 @@
 window.addEventListener('DOMContentLoaded', () => {
-  // 1) Theme color palette
-  const brightColors = [
-    '#FFEBAF', '#4C9DB0', '#19485F', '#D9E0A4', '#F8C61E',
-    '#252C37', '#9A0002', '#EFE6DE', '#004643', '#F0EDE5',
-    '#745275', '#8AB8C2', '#0E5FB4', '#D8D262'
+  // 1) Named theme color palette
+  const namedThemes = [
+    { hex: '#FE6237', name: 'Tiger Flame' },
+    { hex: '#A896F2', name: 'Lilac' },
+    { hex: '#FFB62E', name: 'Sunflower Gold' },
+    { hex: '#FFEBAF', name: 'Buttercream' },
+    { hex: '#4C9DB0', name: 'Tidal' },
+    { hex: '#19485F', name: 'Deep Sea' },
+    { hex: '#D9E0A4', name: 'Pistachio' },
+    { hex: '#F8C61E', name: 'Saffron' },
+    { hex: '#252C37', name: 'Midnight' },
+    { hex: '#9A0002', name: 'Crimson' },
+    { hex: '#EFE6DE', name: 'Linen' },
+    { hex: '#004643', name: 'Evergreen' },
+    { hex: '#F0EDE5', name: 'Ivory' },
+    { hex: '#745275', name: 'Plum' },
+    { hex: '#8AB8C2', name: 'Seafoam' },
+    { hex: '#0E5FB4', name: 'Cobalt' },
+    { hex: '#D8D262', name: 'Chartreuse' }
   ];
 
-  // 2) Pick a random theme color
-  const light = brightColors[Math.floor(Math.random() * brightColors.length)];
+  // 2) Pick a random theme
+  const theme = namedThemes[Math.floor(Math.random() * namedThemes.length)];
+  const light = theme.hex;
+  const themeName = theme.name;
 
   // 3) Darker variant
   const dark = (() => {
@@ -91,11 +107,11 @@ window.addEventListener('DOMContentLoaded', () => {
     return rgbToHex(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
   }
 
-  // Gradient: lighter -> deeper
+  // Gradient: very subtle lighter -> slightly deeper
   function gradientColor(baseHex, j, total) {
     if (total <= 1) return baseHex;
     const t = j / (total - 1);
-    return adjustBrightness(baseHex, 1.12 - t * 0.24);
+    return adjustBrightness(baseHex, 1.04 - t * 0.08);
   }
 
   // Ensure contrast against background
@@ -128,6 +144,19 @@ window.addEventListener('DOMContentLoaded', () => {
   const gradientB = hslToHex((themeH + 150) % 360, 70, 55);
   root.style.setProperty('--title-gradient-a', categoryLight);
   root.style.setProperty('--title-gradient-b', gradientB);
+
+  // === THEME WATERMARK in bottom-right of table ===
+  const styledTable = document.querySelector('.styled-table');
+  const watermark = document.createElement('span');
+  watermark.className = 'theme-watermark';
+  watermark.textContent = themeName;
+  // 15% darker or lighter depending on base luminance
+  const wmLum = getLuminance(light);
+  const wmColor = wmLum > 0.5
+    ? adjustBrightness(light, 0.85)   // darken 15%
+    : adjustBrightness(light, 1.15);  // lighten 15%
+  watermark.style.color = wmColor;
+  styledTable.appendChild(watermark);
 
   // === 3 CONTRAST FILL SWATCHES ===
   const contrastSwatches = [
@@ -366,7 +395,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // === CLEAR ===
   clearButton.addEventListener("click", () => {
     boxes.forEach(b => { b.style.backgroundColor = ""; b.classList.remove("filled"); });
-    bonusBoxes.forEach(b => { b.style.backgroundColor = ""; b.classList.remove("maxed"); });
+    bonusBoxes.forEach(b => { b.style.background = ""; b.classList.remove("maxed"); });
   });
 
   // === TOUCH-SLIDE FILL (mobile) + CLICK FILL (desktop) ===
@@ -465,7 +494,8 @@ window.addEventListener('DOMContentLoaded', () => {
     bonus.tabIndex = 0;
     bonus.addEventListener("click", () => {
       const isMaxed = bonus.classList.toggle("maxed");
-      bonus.style.backgroundColor = isMaxed ? currentColor : "";
+      // Use `background` (not backgroundColor) to override the hatched pattern
+      bonus.style.background = isMaxed ? currentColor : "";
     });
     bonus.addEventListener("keydown", e => {
       if (e.key === " " || e.key === "Enter") { e.preventDefault(); bonus.click(); }
