@@ -1,31 +1,35 @@
 window.addEventListener('DOMContentLoaded', () => {
-  // 1) Named theme color palette
-  const namedThemes = [
-    { hex: '#FE6237', name: 'Tiger Flame' },
-    { hex: '#A896F2', name: 'Lilac' },
-    { hex: '#FFB62E', name: 'Sunflower Gold' },
-    { hex: '#FFEBAF', name: 'Buttercream' },
-    { hex: '#4C9DB0', name: 'Tidal' },
-    { hex: '#19485F', name: 'Deep Sea' },
-    { hex: '#D9E0A4', name: 'Pistachio' },
-    { hex: '#F8C61E', name: 'Saffron' },
-    { hex: '#252C37', name: 'Midnight' },
-    { hex: '#9A0002', name: 'Crimson' },
-    { hex: '#EFE6DE', name: 'Linen' },
-    { hex: '#004643', name: 'Evergreen' },
-    { hex: '#F0EDE5', name: 'Ivory' },
-    { hex: '#745275', name: 'Plum' },
-    { hex: '#8AB8C2', name: 'Seafoam' },
-    { hex: '#0E5FB4', name: 'Cobalt' },
-    { hex: '#D8D262', name: 'Chartreuse' }
+  // 1) Paired color themes — each pair yields 2 variants (swap bg/text)
+  const colorPairs = [
+    { a: { hex: '#745275', name: 'Lavender Fog' },    b: { hex: '#8AB8C2', name: 'Morning Tide' } },
+    { a: { hex: '#F0544D', name: 'Deep Coral' },      b: { hex: '#FFFFD8', name: 'Soft Mint' } },
+    { a: { hex: '#3DA9D8', name: 'Ball Blue' },       b: { hex: '#F1FF0A', name: 'Neon Yellow' } },
+    { a: { hex: '#0F7476', name: 'Teal' },            b: { hex: '#DFAF34', name: 'Mustard Yellow' } },
+    { a: { hex: '#F2B33D', name: 'Sunset Sorbet' },   b: { hex: '#3B5B8A', name: 'Blue Surf' } },
+    { a: { hex: '#F1FB99', name: 'Spring Light' },    b: { hex: '#6186E4', name: 'Twilight Blue' } },
+    { a: { hex: '#FFEB55', name: 'Sunburst Yellow' }, b: { hex: '#FF006E', name: 'Electric Pink' } },
+    { a: { hex: '#FFEB55', name: 'Sunburst Yellow' }, b: { hex: '#913CDC', name: 'Grape Soda' } },
+    { a: { hex: '#FF6339', name: 'Tangerine Crush' }, b: { hex: '#FFCAFD', name: 'Bubblegum Pink' } },
+    { a: { hex: '#FF5F1F', name: 'Fiery Orange' },    b: { hex: '#FFF200', name: 'Golden Yellow' } },
+    { a: { hex: '#2A56F2', name: 'Royal Blue' },      b: { hex: '#9DFECB', name: 'Aquamarine' } },
+    { a: { hex: '#8AB8C2', name: 'Morning Tide' },    b: { hex: '#488496', name: 'Azure Mist' } },
+    { a: { hex: '#FF6EC7', name: 'Holo Pink' },       b: { hex: '#05F0FF', name: 'Electric Cyan' } }
   ];
 
-  // 2) Pick a random theme
-  const theme = namedThemes[Math.floor(Math.random() * namedThemes.length)];
-  const light = theme.hex;
-  const themeName = theme.name;
+  // Build all 26 variants (each pair flipped both ways)
+  const allThemes = [];
+  colorPairs.forEach(pair => {
+    allThemes.push({ bg: pair.a.hex, bgName: pair.a.name, text: pair.b.hex, textName: pair.b.name });
+    allThemes.push({ bg: pair.b.hex, bgName: pair.b.name, text: pair.a.hex, textName: pair.a.name });
+  });
 
-  // 3) Darker variant
+  // 2) Pick a random variant
+  const theme = allThemes[Math.floor(Math.random() * allThemes.length)];
+  const light     = theme.bg;
+  const textColor = theme.text;
+  const themeName = theme.bgName;
+
+  // 3) Darker variant for dark mode
   const dark = (() => {
     const n = parseInt(light.slice(1), 16);
     let r = Math.max(0, ((n >> 16) & 0xFF) - 30);
@@ -34,12 +38,7 @@ window.addEventListener('DOMContentLoaded', () => {
     return '#' + ((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1).toUpperCase();
   })();
 
-  // 4) Text color via luminance
-  const [rT, gT, bT] = light.match(/\w\w/g).map(h => parseInt(h, 16));
-  const lum = (0.299*rT + 0.587*gT + 0.114*bT) / 255;
-  const textColor = lum > 0.5 ? '#000000' : '#FFFFFF';
-
-  // 5) Apply theme
+  // 4) Apply theme
   const root = document.documentElement;
   root.style.setProperty('--slanted-bg-light',   light);
   root.style.setProperty('--slanted-bg-dark',    dark);
