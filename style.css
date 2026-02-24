@@ -155,37 +155,42 @@ body.dark-mode .controls-sep {
 }
 
 /* =============================================
-   6d. BUTTONS — neutral pill with depth gradients
+   6d. BUTTONS — soft glassy neumorphic pills
    ============================================= */
 #controls-bar .controls-actions button,
 #controls-bar .controls-actions .tooltip-wrapper button {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 20px;
+  justify-content: center;
+  min-width: 110px;
+  height: 46px;
+  padding: 0 28px;
   font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: .875rem;
-  letter-spacing: 0.01em;
-  border: 1px solid rgba(0,0,0,.06);
+  font-weight: 500;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  border: 1.5px solid rgba(168,196,164,.55);
   border-radius: 100px;
-  /* Base color — gradient overlay goes on top via ::before */
-  background: #ececec;
-  color: #333;
-  /* Ambient occlusion: tight contact + medium spread + soft far */
-  box-shadow: 0 1px 1px rgba(0,0,0,.07),
-              0 2px 4px rgba(0,0,0,.07),
-              0 4px 10px rgba(0,0,0,.06),
-              0 8px 20px -4px rgba(0,0,0,.08);
+  /* Sage-green frosted glass fill */
+  background: rgba(200,217,197,.72);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: #2D4A35;
+  /* Outer: soft diffused lift  +  Inner: top-edge glass highlight */
+  box-shadow:
+    0 4px 12px rgba(0,0,0,.08),
+    0 1px 3px rgba(0,0,0,.06),
+    inset 0 1px 1px rgba(255,255,255,.45);
   white-space: nowrap;
   cursor: pointer;
   transition: transform .2s var(--ease-out-soft),
-              box-shadow .2s var(--ease-out-soft);
+              box-shadow .25s var(--ease-out-soft),
+              background .2s, border-color .2s;
   overflow: hidden;
   z-index: 0;
 }
-/* Gradient overlay: 10% lighter highlight on top 30% only */
+/* Convex glass highlight — soft top-edge glow */
 #controls-bar .controls-actions button::before,
 #controls-bar .controls-actions .tooltip-wrapper button::before {
   content: '';
@@ -194,14 +199,14 @@ body.dark-mode .controls-sep {
   border-radius: inherit;
   background: linear-gradient(
     to bottom,
-    rgba(255,255,255,.22) 0%,
-    rgba(255,255,255,.10) 30%,
-    transparent 30%
+    rgba(255,255,255,.38) 0%,
+    rgba(255,255,255,.12) 40%,
+    transparent 60%
   );
   pointer-events: none;
   z-index: 1;
 }
-/* Ensure text/icons stay above the overlay */
+/* Text stays above the overlay */
 #controls-bar .controls-actions button > *,
 #controls-bar .controls-actions .tooltip-wrapper button > * {
   position: relative;
@@ -209,68 +214,64 @@ body.dark-mode .controls-sep {
 }
 #controls-bar .controls-actions button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 2px 3px rgba(0,0,0,.07),
-              0 4px 10px rgba(0,0,0,.08),
-              0 10px 28px rgba(0,0,0,.08),
-              0 16px 40px -8px rgba(0,0,0,.1);
+  box-shadow:
+    0 6px 20px rgba(0,0,0,.10),
+    0 2px 6px rgba(0,0,0,.07),
+    inset 0 1px 1px rgba(255,255,255,.50);
+  background: rgba(200,217,197,.82);
 }
 #controls-bar .controls-actions button:active {
   transform: translateY(0) scale(0.97);
-  box-shadow: 0 1px 2px rgba(0,0,0,.08),
-              0 2px 6px rgba(0,0,0,.06);
+  box-shadow:
+    0 1px 4px rgba(0,0,0,.10),
+    inset 0 2px 4px rgba(0,0,0,.06);
+  background: rgba(190,210,188,.80);
   transition-duration: .1s;
 }
 #controls-bar .controls-actions button:focus-visible {
-  outline: 2px solid #888;
+  outline: 2px solid #7BA87E;
   outline-offset: 2px;
 }
-/* Dark mode */
+/* Dark mode — deeper muted glass */
 body.dark-mode #controls-bar .controls-actions button {
-  background: #2a2a2a;
-  color: #ddd;
-  border-color: rgba(255,255,255,.06);
-  box-shadow: 0 1px 1px rgba(0,0,0,.2),
-              0 2px 4px rgba(0,0,0,.2),
-              0 4px 10px rgba(0,0,0,.18),
-              0 8px 20px -4px rgba(0,0,0,.22);
+  background: rgba(55,75,58,.65);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: #c4ddc8;
+  border-color: rgba(120,160,125,.30);
+  box-shadow:
+    0 4px 12px rgba(0,0,0,.25),
+    0 1px 3px rgba(0,0,0,.18),
+    inset 0 1px 1px rgba(255,255,255,.08);
 }
 body.dark-mode #controls-bar .controls-actions button::before {
   background: linear-gradient(
     to bottom,
     rgba(255,255,255,.10) 0%,
-    rgba(255,255,255,.04) 30%,
-    transparent 30%
+    rgba(255,255,255,.03) 40%,
+    transparent 60%
   );
 }
 body.dark-mode #controls-bar .controls-actions button:hover {
-  box-shadow: 0 2px 3px rgba(0,0,0,.25),
-              0 4px 10px rgba(0,0,0,.25),
-              0 10px 28px rgba(0,0,0,.22),
-              0 16px 40px -8px rgba(0,0,0,.3);
+  background: rgba(60,82,63,.75);
+  box-shadow:
+    0 6px 20px rgba(0,0,0,.30),
+    0 2px 6px rgba(0,0,0,.22),
+    inset 0 1px 1px rgba(255,255,255,.10);
 }
 
 /* 6e. DISABLED SAVE */
 #save-button:disabled {
-  opacity: .45;
+  opacity: .40;
   cursor: not-allowed;
   transform: none !important;
+  filter: grayscale(.3);
 }
 
-/* 6f. ICON SIZING */
-#controls-bar .controls-actions button .icon {
-  width: 1.4em; height: 1.4em;
-  flex-shrink: 0;
-  overflow: visible;
-}
-
-/* 6g. DARK/LIGHT TOGGLE ICONS */
-.icon-sun, .label-sun { display: none; }
-body.dark-mode .icon-sun,
-body.dark-mode .label-sun { display: inline-block; }
-body.dark-mode .icon-moon,
+/* 6f. DARK/LIGHT TOGGLE TEXT */
+.label-sun { display: none; }
+body.dark-mode .label-sun { display: inline; }
 body.dark-mode .label-moon { display: none; }
-#dark-mode-toggle .icon-moon { fill: #E8B730; }
-#dark-mode-toggle .icon-sun  { fill: #F28C28; }
 
 /* =============================================
    6h. TOOLTIP — only visible when save disabled,
