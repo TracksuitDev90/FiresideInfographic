@@ -12,7 +12,7 @@ window.addEventListener('DOMContentLoaded', () => {
     { a: { hex: '#FF6339', name: 'Tangerine Crush' }, b: { hex: '#FFCAFD', name: 'Bubblegum Pink' } },
     { a: { hex: '#FF5F1F', name: 'Fiery Orange' },    b: { hex: '#FFF200', name: 'Golden Yellow' } },
     { a: { hex: '#2A56F2', name: 'Royal Blue' },      b: { hex: '#9DFECB', name: 'Aquamarine' } },
-    { a: { hex: '#8AB8C2', name: 'Morning Tide' },    b: { hex: '#488496', name: 'Azure Mist' } },
+    { a: { hex: '#8AB8C2', name: 'Morning Tide' },    b: { hex: '#1E4D5C', name: 'Azure Mist' } },
     { a: { hex: '#FF6EC7', name: 'Holo Pink' },       b: { hex: '#05F0FF', name: 'Electric Cyan' } }
   ];
 
@@ -131,6 +131,16 @@ window.addEventListener('DOMContentLoaded', () => {
   const categoryDark  = ensureContrast(light, 0.05, true);
   root.style.setProperty('--category-color', categoryLight);
   root.style.setProperty('--category-color-dark', categoryDark);
+
+  // === CATEGORY CARD — uses the opposite pair color as background ===
+  root.style.setProperty('--category-card-bg', textColor);
+  root.style.setProperty('--category-card-text', light);
+  // Dark mode variants
+  const [cardH, cardS, cardL] = hexToHsl(textColor);
+  const cardDarkBg = hslToHex(cardH, Math.min(cardS, 40), Math.max(cardL - 15, 15));
+  root.style.setProperty('--category-card-bg-dark', cardDarkBg);
+  const cardDarkText = adjustBrightness(light, 1.10);
+  root.style.setProperty('--category-card-text-dark', cardDarkText);
 
   // === DARK MODE — lighten theme for better contrast ===
   // Compute a lightened variant of the theme for dark mode table bg
