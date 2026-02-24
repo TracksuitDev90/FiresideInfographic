@@ -368,14 +368,30 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   // === TOUCH-SLIDE FILL (mobile) + CLICK FILL (desktop) ===
+  // Haptic pulse helper — briefly flash a color glow on a box
+  function pulseBox(box, color) {
+    box.style.setProperty('--fill-color', color + '55'); // ~33% opacity via hex alpha
+    box.classList.remove('fill-pulse');
+    // Force reflow to restart animation
+    void box.offsetWidth;
+    box.classList.add('fill-pulse');
+    box.addEventListener('animationend', () => {
+      box.classList.remove('fill-pulse');
+    }, { once: true });
+  }
+
   // Helper: fill boxes up to index in a row
   function fillRowUpTo(row, upToIdx) {
     const rowBoxes = Array.from(row.querySelectorAll(".box:not(.bonus-box)"));
     const fillCount = upToIdx + 1;
     rowBoxes.forEach((b, j) => {
       if (j <= upToIdx) {
-        b.style.backgroundColor = gradientColor(currentColor, j, fillCount);
-        if (!b.classList.contains("filled")) b.classList.add("filled");
+        const c = gradientColor(currentColor, j, fillCount);
+        b.style.backgroundColor = c;
+        if (!b.classList.contains("filled")) {
+          b.classList.add("filled");
+          pulseBox(b, currentColor);
+        }
       } else {
         b.style.backgroundColor = "";
         b.classList.remove("filled");
