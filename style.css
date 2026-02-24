@@ -1,5 +1,5 @@
 /* 1. TYPEFACES — serif + sans mix */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Montserrat:wght@600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Poppins:wght@800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Montserrat:wght@600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Poppins:wght@600;800;900&display=swap');
 
 /* 2. ROOT CUSTOM PROPERTIES */
 :root {
@@ -365,7 +365,7 @@ body.dark-mode .styled-table .field {
 
 /* Labels */
 .styled-table label {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: .85rem;
   letter-spacing: 0.03em;
@@ -378,8 +378,8 @@ body.dark-mode .styled-table .field {
 /* Neomorphic text inputs */
 .styled-table input[type="text"] {
   padding: 10px 14px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
   font-size: 1rem;
   border: 1px solid rgba(0,0,0,.06);
   border-radius: 10px;
