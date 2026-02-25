@@ -13,7 +13,11 @@ window.addEventListener('DOMContentLoaded', () => {
     { a: { hex: '#FF5F1F', name: 'Fiery Orange' },    b: { hex: '#FFF200', name: 'Golden Yellow' } },
     { a: { hex: '#2A56F2', name: 'Royal Blue' },      b: { hex: '#9DFECB', name: 'Aquamarine' } },
     { a: { hex: '#8AB8C2', name: 'Morning Tide' },    b: { hex: '#1E4D5C', name: 'Azure Mist' } },
-    { a: { hex: '#FF6EC7', name: 'Holo Pink' },       b: { hex: '#05F0FF', name: 'Electric Cyan' } }
+    { a: { hex: '#FF6EC7', name: 'Holo Pink' },       b: { hex: '#05F0FF', name: 'Electric Cyan' } },
+    { a: { hex: '#014AAD', name: 'Royal Cobalt' },     b: { hex: '#CBDFEE', name: 'Glacier Mist' } },
+    { a: { hex: '#19485F', name: 'Ocean' },             b: { hex: '#D9E0A4', name: 'Lime' } },
+    { a: { hex: '#527882', name: 'Blue Slate' },        b: { hex: '#DACD48', name: 'Citron' } },
+    { a: { hex: '#004643', name: 'Cyprus' },            b: { hex: '#F0EDE5', name: 'Sand Dune' } }
   ];
 
   // Build all 26 variants (each pair flipped both ways)
@@ -365,6 +369,7 @@ window.addEventListener('DOMContentLoaded', () => {
   clearButton.addEventListener("click", () => {
     boxes.forEach(b => { b.style.backgroundColor = ""; b.classList.remove("filled"); });
     bonusBoxes.forEach(b => { b.style.background = ""; b.classList.remove("maxed"); });
+    document.querySelectorAll('.boxes.maxxed-row').forEach(r => r.classList.remove('maxxed-row'));
   });
 
   // === TOUCH-SLIDE FILL (mobile) + CLICK FILL (desktop) ===
@@ -378,6 +383,15 @@ window.addEventListener('DOMContentLoaded', () => {
     box.addEventListener('animationend', () => {
       box.classList.remove('fill-pulse');
     }, { once: true });
+  }
+
+  // Check if a row is fully 10/10 (all 9 boxes filled + bonus maxed)
+  function checkMaxxedRow(boxesContainer) {
+    const rowBoxes = Array.from(boxesContainer.querySelectorAll(".box:not(.bonus-box)"));
+    const bonus = boxesContainer.querySelector(".bonus-box");
+    const allFilled = rowBoxes.every(b => b.classList.contains("filled"));
+    const bonusMaxed = bonus && bonus.classList.contains("maxed");
+    boxesContainer.classList.toggle("maxxed-row", allFilled && bonusMaxed);
   }
 
   // Helper: fill boxes up to index in a row
@@ -397,6 +411,7 @@ window.addEventListener('DOMContentLoaded', () => {
         b.classList.remove("filled");
       }
     });
+    checkMaxxedRow(row);
   }
 
   // Helper: clear all boxes in a row
@@ -406,6 +421,7 @@ window.addEventListener('DOMContentLoaded', () => {
       b.style.backgroundColor = "";
       b.classList.remove("filled");
     });
+    checkMaxxedRow(row);
   }
 
   // Track touch state for smooth slide fill
@@ -481,6 +497,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const isMaxed = bonus.classList.toggle("maxed");
       // Use `background` (not backgroundColor) to override the hatched pattern
       bonus.style.background = isMaxed ? currentColor : "";
+      checkMaxxedRow(bonus.closest('.boxes'));
     });
     bonus.addEventListener("keydown", e => {
       if (e.key === " " || e.key === "Enter") { e.preventDefault(); bonus.click(); }

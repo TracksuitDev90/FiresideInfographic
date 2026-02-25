@@ -619,6 +619,17 @@ body.dark-mode .category {
   grid-template-columns: repeat(10, 1fr);
   gap: 6px;
   width: 100%;
+  border-radius: 8px;
+  padding: 4px;
+  transition: border-radius .35s var(--ease-out-expo),
+              background .35s var(--ease-out-expo),
+              box-shadow .35s var(--ease-out-expo);
+}
+/* 10/10 maxxed state — pill-shaped container */
+.boxes.maxxed-row {
+  border-radius: 999px;
+  background: rgba(255,215,0,.08);
+  box-shadow: inset 0 0 12px rgba(255,215,0,.10);
 }
 
 /* Pop-fill animation */
