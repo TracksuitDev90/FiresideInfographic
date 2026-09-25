@@ -1,544 +1,645 @@
-window.addEventListener('DOMContentLoaded', () => {
-  // 1) Paired color themes — each pair yields 2 variants (swap bg/text)
-  const colorPairs = [
-    { a: { hex: '#745275', name: 'Lavender Fog' },    b: { hex: '#8AB8C2', name: 'Morning Tide' } },
-    { a: { hex: '#F0544D', name: 'Deep Coral' },      b: { hex: '#FFFFD8', name: 'Soft Mint' } },
-    { a: { hex: '#3DA9D8', name: 'Ball Blue' },       b: { hex: '#F1FF0A', name: 'Neon Yellow' } },
-    { a: { hex: '#0F7476', name: 'Teal' },            b: { hex: '#DFAF34', name: 'Mustard Yellow' } },
-    { a: { hex: '#F2B33D', name: 'Sunset Sorbet' },   b: { hex: '#3B5B8A', name: 'Blue Surf' } },
-    { a: { hex: '#F1FB99', name: 'Spring Light' },    b: { hex: '#6186E4', name: 'Twilight Blue' } },
-    { a: { hex: '#FFEB55', name: 'Sunburst Yellow' }, b: { hex: '#FF006E', name: 'Electric Pink' } },
-    { a: { hex: '#FFEB55', name: 'Sunburst Yellow' }, b: { hex: '#913CDC', name: 'Grape Soda' } },
-    { a: { hex: '#FF6339', name: 'Tangerine Crush' }, b: { hex: '#FFCAFD', name: 'Bubblegum Pink' } },
-    { a: { hex: '#FF5F1F', name: 'Fiery Orange' },    b: { hex: '#FFF200', name: 'Golden Yellow' } },
-    { a: { hex: '#2A56F2', name: 'Royal Blue' },      b: { hex: '#9DFECB', name: 'Aquamarine' } },
-    { a: { hex: '#8AB8C2', name: 'Morning Tide' },    b: { hex: '#1E4D5C', name: 'Azure Mist' } },
-    { a: { hex: '#FF6EC7', name: 'Holo Pink' },       b: { hex: '#05F0FF', name: 'Electric Cyan' } },
-    { a: { hex: '#014AAD', name: 'Royal Cobalt' },     b: { hex: '#CBDFEE', name: 'Glacier Mist' } },
-    { a: { hex: '#19485F', name: 'Ocean' },             b: { hex: '#D9E0A4', name: 'Lime' } },
-    { a: { hex: '#527882', name: 'Blue Slate' },        b: { hex: '#DACD48', name: 'Citron' } },
-    { a: { hex: '#004643', name: 'Cyprus' },            b: { hex: '#F0EDE5', name: 'Sand Dune' } }
+/* Fireside Infograph: ratings, form, tools dock, persistence and export.
+ * Colours and theme state come from theme.js (window.Fireside). */
+(function () {
+  'use strict';
+
+  const F = window.Fireside;
+  const C = F.color;
+  const $ = (sel, root = document) => root.querySelector(sel);
+
+  // === CONTENT ===
+  const CATEGORIES = [
+    ['Intelligence', 'How smart are you compared to the average person?'],
+    ['Wealth', 'How wealthy are you compared to the average person?'],
+    ['Sex Life', 'How’s your sex life compared to the average person?'],
+    ['Physical Appearance', 'How attractive are you compared to the average person?'],
+    ['Personality', 'How likeable is your personality compared to the average person?'],
+    ['Confidence', 'How confident are you compared to the average person?'],
+    ['Social Life', 'How active is your social life compared to the average person?'],
+    ['Health / Fitness', 'How healthy and fit are you compared to the average person?'],
+    ['Happiness', 'How happy are you compared to the average person?'],
+    ['Cringiness', 'How cringey are you compared to the average person?']
   ];
+  const BOXES = 9;   // regular boxes per row
+  const MAX = 10;    // the ★ bonus box makes 10/10
+  const AGES = Array.from({ length: 82 }, (_, i) => String(18 + i));
+  const MBTI = ['Unknown', 'ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP',
+                'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
+  const FIELDS = [
+    { id: 'f-name', key: 'name', label: 'name' },
+    { id: 'f-gender', key: 'gender', label: 'gender' },
+    { id: 'f-orientation', key: 'orientation', label: 'orientation' },
+    { id: 'f-age', key: 'age', label: 'age' },
+    { id: 'f-type', key: 'type', label: 'personality type' }
+  ];
+  const INFO_ICON = '<svg class="icon info-icon" viewBox="0 0 24 24" aria-hidden="true" data-html2canvas-ignore><path d="m6 9 6 6 6-6"/></svg>';
 
-  // Build all 26 variants (each pair flipped both ways)
-  const allThemes = [];
-  colorPairs.forEach(pair => {
-    allThemes.push({ bg: pair.a.hex, bgName: pair.a.name, text: pair.b.hex, textName: pair.b.name });
-    allThemes.push({ bg: pair.b.hex, bgName: pair.b.name, text: pair.a.hex, textName: pair.a.name });
+  const coarsePointer = window.matchMedia('(pointer: coarse)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const isHex = v => typeof v === 'string' && /^#[0-9A-F]{6}$/i.test(v);
+  const clampInt = (v, lo, hi) => Math.min(hi, Math.max(lo, Math.round(Number(v)) || 0));
+
+  // === STATE (restored from localStorage via theme.js) ===
+  const saved = F.state;
+  let currentColor = isHex(saved.color) ? saved.color.toUpperCase() : F.defaultFill();
+  const rows = CATEGORIES.map((_, i) => {
+    const r = (Array.isArray(saved.rows) && saved.rows[i]) || {};
+    return { value: clampInt(r.v, 0, MAX), color: isHex(r.c) ? r.c.toUpperCase() : null, el: null, boxes: [], star: null };
   });
 
-  // 2) Pick a random variant
-  const theme = allThemes[Math.floor(Math.random() * allThemes.length)];
-  const light     = theme.bg;
-  const textColor = theme.text;
-  const themeName = theme.bgName;
-
-  // 3) Darker variant for dark mode
-  const dark = (() => {
-    const n = parseInt(light.slice(1), 16);
-    let r = Math.max(0, ((n >> 16) & 0xFF) - 30);
-    let g = Math.max(0, ((n >> 8)  & 0xFF) - 30);
-    let b = Math.max(0, ((n)       & 0xFF) - 30);
-    return '#' + ((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1).toUpperCase();
-  })();
-
-  // 4) Apply theme
-  const root = document.documentElement;
-  root.style.setProperty('--slanted-bg-light',   light);
-  root.style.setProperty('--slanted-bg-dark',    dark);
-  root.style.setProperty('--slanted-text-color', textColor);
-
-  // === COLOR UTILITIES ===
-  function hexToRgb(hex) {
-    const n = parseInt(hex.slice(1), 16);
-    return [(n >> 16) & 0xFF, (n >> 8) & 0xFF, n & 0xFF];
+  let persistTimer = null;
+  function persistNow() {
+    clearTimeout(persistTimer);
+    saved.color = currentColor;
+    saved.rows = rows.map(r => ({ v: r.value, c: r.color }));
+    saved.fields = {};
+    FIELDS.forEach(f => { saved.fields[f.key] = $('#' + f.id).value; });
+    F.persist();
   }
-
-  function rgbToHex(r, g, b) {
-    return '#' + ((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1).toUpperCase();
+  function persist() {
+    clearTimeout(persistTimer);
+    persistTimer = setTimeout(persistNow, 200);
   }
+  window.addEventListener('pagehide', persistNow);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') persistNow(); });
 
-  function adjustBrightness(hex, factor) {
-    let [r, g, b] = hexToRgb(hex);
-    r = Math.min(255, Math.max(0, Math.round(r * factor)));
-    g = Math.min(255, Math.max(0, Math.round(g * factor)));
-    b = Math.min(255, Math.max(0, Math.round(b * factor)));
-    return rgbToHex(r, g, b);
-  }
-
-  function getLuminance(hex) {
-    const [r, g, b] = hexToRgb(hex);
-    return (0.299*r + 0.587*g + 0.114*b) / 255;
-  }
-
-  function hexToHsl(hex) {
-    let [r, g, b] = hexToRgb(hex);
-    r /= 255; g /= 255; b /= 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
-    if (max === min) {
-      h = s = 0;
-    } else {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-      else if (max === g) h = ((b - r) / d + 2) / 6;
-      else h = ((r - g) / d + 4) / 6;
+  // === SMALL HELPERS ===
+  function haptic() {
+    if (navigator.vibrate && !reducedMotion.matches) {
+      try { navigator.vibrate(6); } catch (e) { /* not allowed right now */ }
     }
-    return [h * 360, s * 100, l * 100];
   }
 
-  function hslToHex(h, s, l) {
-    h /= 360; s /= 100; l /= 100;
-    let r, g, b;
-    if (s === 0) {
-      r = g = b = l;
-    } else {
-      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-      const p = 2 * l - q;
-      const hue2rgb = (p2, q2, t) => {
-        if (t < 0) t += 1; if (t > 1) t -= 1;
-        if (t < 1/6) return p2 + (q2 - p2) * 6 * t;
-        if (t < 1/2) return q2;
-        if (t < 2/3) return p2 + (q2 - p2) * (2/3 - t) * 6;
-        return p2;
-      };
-      r = hue2rgb(p, q, h + 1/3);
-      g = hue2rgb(p, q, h);
-      b = hue2rgb(p, q, h - 1/3);
+  const toastsEl = $('#toasts');
+  function toast(message, opts = {}) {
+    const el = document.createElement('div');
+    el.className = 'toast';
+    const text = document.createElement('span');
+    text.textContent = message;
+    el.appendChild(text);
+    let timer = null;
+    const dismiss = () => {
+      clearTimeout(timer);
+      el.classList.add('leaving');
+      setTimeout(() => el.remove(), 220);
+    };
+    if (opts.action) {
+      el.classList.add('has-action');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = opts.action;
+      btn.addEventListener('click', () => { opts.onAction(); dismiss(); });
+      el.appendChild(btn);
     }
-    return rgbToHex(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
+    toastsEl.appendChild(el);
+    while (toastsEl.children.length > 2) toastsEl.firstElementChild.remove();
+    timer = setTimeout(dismiss, opts.duration || 3200);
+    return dismiss;
   }
 
-  // Gradient: very subtle lighter -> slightly deeper
-  function gradientColor(baseHex, j, total) {
-    if (total <= 1) return baseHex;
-    const t = j / (total - 1);
-    return adjustBrightness(baseHex, 1.04 - t * 0.08);
+  // === FORM ===
+  function fillSelect(select, values) {
+    const frag = document.createDocumentFragment();
+    values.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v;
+      o.textContent = v;
+      frag.appendChild(o);
+    });
+    select.appendChild(frag);
+  }
+  fillSelect($('#f-age'), AGES);
+  fillSelect($('#f-type'), MBTI);
+
+  const fieldEls = FIELDS.map(f => $('#' + f.id));
+  const saveBtn = $('#save-button');
+
+  const missingFields = () => FIELDS.filter((f, i) => !fieldEls[i].value.trim());
+
+  function updateSaveState() {
+    const ready = missingFields().length === 0;
+    saveBtn.classList.toggle('is-ready', ready);
+    if (ready) warmExporter();
   }
 
-  // Ensure contrast against background
-  function ensureContrast(fgHex, bgLum, lighten) {
-    let fg = fgHex;
-    for (let i = 0; i < 15; i++) {
-      const fgLum = getLuminance(fg);
-      const ratio = (Math.max(fgLum, bgLum) + 0.05) /
-                    (Math.min(fgLum, bgLum) + 0.05);
-      if (ratio >= 3.5) return fg;
-      fg = adjustBrightness(fg, lighten ? 1.15 : 0.82);
+  FIELDS.forEach((f, i) => {
+    const el = fieldEls[i];
+    const stored = saved.fields && saved.fields[f.key];
+    if (typeof stored === 'string') {
+      if (el.tagName === 'SELECT') {
+        if (Array.from(el.options).some(o => o.value === stored && stored)) el.value = stored;
+      } else {
+        el.value = stored.slice(0, el.maxLength > 0 ? el.maxLength : 64);
+      }
     }
-    return fg;
-  }
-
-  // === CATEGORY COLORS ===
-  const categoryLight = ensureContrast(light, 0.93, false);
-  const categoryDark  = ensureContrast(light, 0.05, true);
-  root.style.setProperty('--category-color', categoryLight);
-  root.style.setProperty('--category-color-dark', categoryDark);
-
-  // === CATEGORY CARD — uses the opposite pair color as background ===
-  root.style.setProperty('--category-card-bg', textColor);
-  root.style.setProperty('--category-card-text', light);
-  // Dark mode variants
-  const [cardH, cardS, cardL] = hexToHsl(textColor);
-  const cardDarkBg = hslToHex(cardH, Math.min(cardS, 40), Math.max(cardL - 15, 15));
-  root.style.setProperty('--category-card-bg-dark', cardDarkBg);
-  const cardDarkText = adjustBrightness(light, 1.10);
-  root.style.setProperty('--category-card-text-dark', cardDarkText);
-
-  // === DARK MODE — lighten theme for better contrast ===
-  // Compute a lightened variant of the theme for dark mode table bg
-  const [dH, dS, dL] = hexToHsl(dark);
-  const darkLightened = hslToHex(dH, Math.min(dS, 40), Math.max(dL + 15, 25));
-  root.style.setProperty('--slanted-bg-dark', darkLightened);
-
-  // === TITLE COLOR — 10% darker (light mode) / 10% lighter (dark mode) ===
-  const [themeH] = hexToHsl(light);
-  const titleColorLight = adjustBrightness(light, 0.90);
-  const titleColorDark  = adjustBrightness(light, 1.10);
-  root.style.setProperty('--title-color', titleColorLight);
-  root.style.setProperty('--title-color-dark', titleColorDark);
-
-  // === THEME WATERMARK in bottom-right of table ===
-  const styledTable = document.querySelector('.styled-table');
-  const watermark = document.createElement('span');
-  watermark.className = 'theme-watermark';
-  watermark.textContent = themeName;
-  // 15% darker or lighter depending on base luminance
-  const wmLum = getLuminance(light);
-  const wmColor = wmLum > 0.5
-    ? adjustBrightness(light, 0.85)   // darken 15%
-    : adjustBrightness(light, 1.15);  // lighten 15%
-  watermark.style.color = wmColor;
-  styledTable.appendChild(watermark);
-
-  // === COLOR PICKER (direct spectrum) ===
-  const colorPicker = document.getElementById("color-picker");
-
-  // === DOM ELEMENTS ===
-  const clearButton    = document.getElementById("clear-button");
-  const darkModeToggle = document.getElementById("dark-mode-toggle");
-  const saveButton     = document.getElementById("save-button");
-  const inputs         = Array.from(document.querySelectorAll("#input-fields input"));
-  const boxes          = Array.from(document.querySelectorAll(".box:not(.bonus-box)"));
-  const bonusBoxes     = Array.from(document.querySelectorAll(".bonus-box"));
-
-  // Default fill: a contrasting hue from the theme
-  let currentColor = hslToHex((themeH + 180) % 360, 65, 55);
-  colorPicker.value = currentColor;
-
-  colorPicker.addEventListener("input", e => {
-    currentColor = e.target.value;
+    el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => {
+      el.closest('.field').classList.remove('is-invalid');
+      el.removeAttribute('aria-invalid');
+      updateSaveState();
+      persist();
+    });
+    // "Next" on the phone keyboard moves through the form
+    if (el.tagName === 'INPUT') {
+      el.addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const next = fieldEls[i + 1];
+        if (next) next.focus(); else el.blur();
+      });
+    }
   });
 
-  // === DETECT MOBILE (for picker behavior) ===
-  const isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  function listToText(items) {
+    if (items.length <= 1) return items.join('');
+    return items.slice(0, -1).join(', ') + ' and ' + items[items.length - 1];
+  }
 
-  // === PICKER INPUTS (Age / MBTI) ===
-  const mbtiOptions = ['Unknown', 'ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
-  const ageOptions = Array.from({ length: 82 }, (_, i) => String(18 + i));
+  function flagMissing(missing) {
+    missing.forEach(f => {
+      const el = $('#' + f.id);
+      const field = el.closest('.field');
+      field.classList.remove('is-invalid');
+      void field.offsetWidth; // restart the shake
+      field.classList.add('is-invalid');
+      el.setAttribute('aria-invalid', 'true');
+    });
+    const first = $('#' + missing[0].id);
+    first.scrollIntoView({ behavior: reducedMotion.matches ? 'auto' : 'smooth', block: 'center' });
+    // Selects open a picker on focus on some phones, so only focus text fields
+    if (first.tagName === 'INPUT') first.focus({ preventScroll: true });
+    toast(`Add your ${listToText(missing.map(f => f.label))} to save`);
+  }
 
-  const pickerConfigs = {
-    age:  { options: ageOptions,  label: 'Age', selected: '' },
-    mbti: { options: mbtiOptions, label: 'Personality Type', selected: '' }
-  };
+  // Typing on a phone: tuck the dock away so it doesn't ride on the keyboard
+  document.addEventListener('focusin', e => {
+    if (coarsePointer.matches && e.target.matches && e.target.matches('input.input')) {
+      document.documentElement.classList.add('is-typing');
+    }
+  });
+  document.addEventListener('focusout', e => {
+    if (e.target.matches && e.target.matches('input.input')) {
+      document.documentElement.classList.remove('is-typing');
+    }
+  });
 
-  document.querySelectorAll('.picker-wrap').forEach(wrapper => {
-    const key = wrapper.dataset.picker;
-    const config = pickerConfigs[key];
-    if (!config) return;
+  // === RATINGS ===
+  const ratingsEl = $('#ratings');
 
-    const input    = wrapper.querySelector('input');
-    const dropdown = wrapper.querySelector('.picker-dropdown');
+  CATEGORIES.forEach(([name, desc], i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'rating';
+    wrap.innerHTML =
+      `<h2 class="rating-title"><button type="button" class="rating-name" id="cat-${i}" aria-expanded="false" aria-controls="desc-${i}">${name}${INFO_ICON}</button></h2>` +
+      `<div class="rating-desc-wrap" id="desc-${i}"><div><p class="rating-desc" id="desc-text-${i}">${desc}</p></div></div>` +
+      `<div class="boxes" role="slider" tabindex="0" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="${MAX}" aria-labelledby="cat-${i}" aria-describedby="desc-text-${i}">` +
+      '<span class="box"></span>'.repeat(BOXES) + '<span class="box star"></span></div>';
+    ratingsEl.appendChild(wrap);
 
-    // Populate dropdown options
-    config.options.forEach(opt => {
-      const div = document.createElement('div');
-      div.className = 'picker-option';
-      div.textContent = opt;
-      div.dataset.value = opt;
-      dropdown.appendChild(div);
+    const row = rows[i];
+    row.el = wrap.querySelector('.boxes');
+    row.boxes = Array.from(row.el.querySelectorAll('.box:not(.star)'));
+    row.star = row.el.querySelector('.star');
+    row.boxes.concat(row.star).forEach(b => b.addEventListener('animationend', () => b.classList.remove('pop')));
+    row.el.addEventListener('animationend', e => { if (e.pseudoElement) row.el.classList.remove('celebrate'); });
+
+    const toggle = wrap.querySelector('.rating-name');
+    toggle.addEventListener('click', () => {
+      const open = wrap.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(open));
     });
 
-    if (isMobile) {
-      // === MOBILE: bottom sheet overlay ===
-      const overlay = document.createElement('div');
-      overlay.className = 'picker-overlay';
-      overlay.innerHTML = `
-        <div class="picker-sheet">
-          <div class="picker-sheet-header">
-            <span>${config.label}</span>
-            <button class="picker-sheet-done" type="button">Done</button>
-          </div>
-          <div class="picker-sheet-scroll"></div>
-        </div>
-      `;
-      document.body.appendChild(overlay);
-
-      const scrollContainer = overlay.querySelector('.picker-sheet-scroll');
-      const doneBtn = overlay.querySelector('.picker-sheet-done');
-
-      config.options.forEach(opt => {
-        const div = document.createElement('div');
-        div.className = 'picker-option';
-        div.textContent = opt;
-        div.dataset.value = opt;
-        scrollContainer.appendChild(div);
-      });
-
-      input.addEventListener('click', (e) => {
-        e.preventDefault();
-        // Mark current selection
-        scrollContainer.querySelectorAll('.picker-option').forEach(o => {
-          o.classList.toggle('selected', o.dataset.value === config.selected);
-        });
-        overlay.classList.add('open');
-        // Scroll to selected item
-        const sel = scrollContainer.querySelector('.picker-option.selected');
-        if (sel) sel.scrollIntoView({ block: 'center' });
-      });
-
-      scrollContainer.addEventListener('click', (e) => {
-        const opt = e.target.closest('.picker-option');
-        if (!opt) return;
-        config.selected = opt.dataset.value;
-        input.value = config.selected;
-        scrollContainer.querySelectorAll('.picker-option').forEach(o => {
-          o.classList.toggle('selected', o.dataset.value === config.selected);
-        });
-        checkSave();
-      });
-
-      doneBtn.addEventListener('click', () => {
-        overlay.classList.remove('open');
-      });
-
-      overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) overlay.classList.remove('open');
-      });
-    } else {
-      // === DESKTOP: dropdown on click ===
-      input.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // Close other dropdowns
-        document.querySelectorAll('.picker-dropdown.open').forEach(d => {
-          if (d !== dropdown) d.classList.remove('open');
-        });
-        // Mark current selection
-        dropdown.querySelectorAll('.picker-option').forEach(o => {
-          o.classList.toggle('selected', o.dataset.value === config.selected);
-        });
-        dropdown.classList.toggle('open');
-        // Scroll to selected
-        const sel = dropdown.querySelector('.picker-option.selected');
-        if (sel) sel.scrollIntoView({ block: 'center' });
-      });
-
-      dropdown.addEventListener('click', (e) => {
-        const opt = e.target.closest('.picker-option');
-        if (!opt) return;
-        config.selected = opt.dataset.value;
-        input.value = config.selected;
-        dropdown.querySelectorAll('.picker-option').forEach(o => {
-          o.classList.toggle('selected', o.dataset.value === config.selected);
-        });
-        dropdown.classList.remove('open');
-        checkSave();
-      });
-
-      // Also support wheel on the input for desktop
-      wrapper.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const idx = config.options.indexOf(config.selected);
-        let next;
-        if (e.deltaY > 0) {
-          next = (idx === -1 || idx >= config.options.length - 1) ? 0 : idx + 1;
-        } else {
-          next = (idx <= 0) ? config.options.length - 1 : idx - 1;
-        }
-        config.selected = config.options[next];
-        input.value = config.selected;
-        checkSave();
-      }, { passive: false });
-    }
+    attachPointer(row);
+    attachKeyboard(row);
+    renderRow(row);
   });
 
-  // Close desktop dropdowns on outside click
-  document.addEventListener('click', () => {
-    document.querySelectorAll('.picker-dropdown.open').forEach(d => d.classList.remove('open'));
-  });
-
-  // === CATEGORY TOOLTIPS ===
-  const categories = Array.from(document.querySelectorAll(".category[data-desc]"));
-  let activeTooltip = null;
-
-  categories.forEach(cat => {
-    const tip = document.createElement("span");
-    tip.className = "category-tooltip";
-    tip.textContent = cat.dataset.desc;
-    tip.style.backgroundColor = light;
-    tip.style.color = textColor;
-    cat.appendChild(tip);
-
-    cat.addEventListener("mouseenter", () => tip.classList.add("visible"));
-    cat.addEventListener("mouseleave", () => tip.classList.remove("visible"));
-
-    cat.addEventListener("touchstart", e => {
-      e.preventDefault();
-      if (activeTooltip && activeTooltip !== tip) activeTooltip.classList.remove("visible");
-      tip.classList.toggle("visible");
-      activeTooltip = tip.classList.contains("visible") ? tip : null;
-    }, { passive: false });
-  });
-
-  document.addEventListener("touchstart", e => {
-    if (activeTooltip && !e.target.closest(".category")) {
-      activeTooltip.classList.remove("visible");
-      activeTooltip = null;
-    }
-  });
-
-  // === SAVE BUTTON VALIDATION ===
-  function checkSave() {
-    saveButton.disabled = !inputs.every(i => i.value.trim());
+  function pop(box, color) {
+    box.style.setProperty('--pulse', C.rgba(color, 0.55));
+    box.classList.remove('pop');
+    void box.offsetWidth; // restart the animation
+    box.classList.add('pop');
   }
-  inputs.forEach(i => i.addEventListener("input", checkSave));
-  checkSave();
 
-  // === CLEAR ===
-  clearButton.addEventListener("click", () => {
-    boxes.forEach(b => { b.style.backgroundColor = ""; b.classList.remove("filled"); });
-    bonusBoxes.forEach(b => { b.style.background = ""; b.classList.remove("maxed"); });
-    document.querySelectorAll('.boxes.maxxed-row').forEach(r => r.classList.remove('maxxed-row'));
+  function renderRow(row, animate) {
+    const color = row.color || currentColor;
+    const filled = Math.min(row.value, BOXES);
+    row.boxes.forEach((box, j) => {
+      const on = j < filled;
+      const was = box.classList.contains('filled');
+      box.classList.remove('is-preview');
+      if (on) {
+        const c = C.ramp(color, j, BOXES);
+        box.style.backgroundColor = c;
+        if (!was) {
+          box.classList.add('filled');
+          if (animate) pop(box, c);
+        }
+      } else if (was) {
+        box.classList.remove('filled');
+        box.style.backgroundColor = '';
+      }
+    });
+
+    const maxed = row.value === MAX;
+    const wasMaxed = row.star.classList.contains('maxed');
+    row.star.classList.toggle('maxed', maxed);
+    row.el.classList.toggle('is-max', maxed);
+    if (maxed) {
+      const deep = C.ramp(color, BOXES - 1, BOXES);
+      row.star.style.backgroundColor = deep;
+      row.star.style.setProperty('--star-ink', C.bestInk(deep));
+      if (!wasMaxed && animate) {
+        pop(row.star, '#F5C542');
+        row.el.classList.remove('celebrate');
+        void row.el.offsetWidth;
+        row.el.classList.add('celebrate');
+      }
+    } else {
+      row.star.style.backgroundColor = '';
+    }
+
+    row.el.setAttribute('aria-valuenow', String(row.value));
+    row.el.setAttribute('aria-valuetext', maxed ? '10 out of 10, maxed' : `${row.value} out of 10`);
+  }
+
+  // Set a row's value. Any change also paints the row in the current colour,
+  // so re-tapping a row is how you recolour it.
+  function setValue(row, value, opts = {}) {
+    value = clampInt(value, 0, MAX);
+    const recolour = value > 0 && row.color !== currentColor;
+    if (value === row.value && !recolour) return;
+    if (value > 0) row.color = currentColor;
+    row.value = value;
+    renderRow(row, true);
+    if (opts.haptic) haptic();
+    persist();
+  }
+
+  // Midpoints between neighbouring cells, measured once per gesture.
+  function measure(row) {
+    const rects = row.boxes.concat(row.star).map(el => el.getBoundingClientRect());
+    const mids = [];
+    for (let k = 0; k < rects.length - 1; k++) mids.push((rects[k].right + rects[k + 1].left) / 2);
+    return { left: rects[0].left, mids };
+  }
+  // Value (1–10) under clientX; while dragging, going left of the first box gives 0.
+  function valueAt(m, x, allowZero) {
+    if (allowZero && x < m.left) return 0;
+    let k = 0;
+    while (k < m.mids.length && x >= m.mids[k]) k++;
+    return k + 1;
+  }
+
+  function clearPreview(row) {
+    row.boxes.forEach(b => b.classList.remove('is-preview'));
+  }
+  function showPreview(row, x) {
+    const target = Math.min(valueAt(measure(row), x, false), BOXES);
+    row.el.style.setProperty('--preview', C.rgba(currentColor, 0.38));
+    row.boxes.forEach((b, j) => b.classList.toggle('is-preview', j >= row.value && j < target));
+  }
+
+  function attachPointer(row) {
+    const el = row.el;
+    let g = null; // current gesture
+
+    el.addEventListener('pointerdown', e => {
+      if (e.button !== 0 || g) return;
+      g = { id: e.pointerId, type: e.pointerType, x0: e.clientX, y0: e.clientY, start: row.value, m: measure(row), dragging: false };
+      if (e.pointerType === 'mouse') {
+        e.preventDefault();
+        el.focus({ preventScroll: true });
+        el.setPointerCapture(e.pointerId);
+      }
+      // Touch: do nothing yet. A vertical swipe must stay a page scroll
+      // (touch-action: pan-y), so we only fill once the finger moves sideways
+      // or lifts as a tap.
+    });
+
+    el.addEventListener('pointermove', e => {
+      if (!g) {
+        if (e.pointerType === 'mouse') showPreview(row, e.clientX);
+        return;
+      }
+      if (e.pointerId !== g.id) return;
+      const dx = e.clientX - g.x0, dy = e.clientY - g.y0;
+      if (!g.dragging) {
+        const slop = g.type === 'mouse' ? 3 : 8;
+        if (Math.abs(dx) < slop || Math.abs(dx) < Math.abs(dy)) return;
+        g.dragging = true;
+        if (g.type !== 'mouse') {
+          try { el.setPointerCapture(e.pointerId); } catch (err) { /* already released */ }
+        }
+      }
+      setValue(row, valueAt(g.m, e.clientX, true), { haptic: g.type === 'touch' });
+    });
+
+    el.addEventListener('pointerup', e => {
+      if (!g || e.pointerId !== g.id) return;
+      const moved = Math.hypot(e.clientX - g.x0, e.clientY - g.y0);
+      if (!g.dragging && moved < 12) {
+        // Tap: fill up to this box. Tapping the current value clears the row;
+        // tapping a lit ★ drops back to 9.
+        const hit = valueAt(g.m, e.clientX, false);
+        const next = hit === g.start ? (hit === MAX ? BOXES : 0) : hit;
+        setValue(row, next, { haptic: g.type === 'touch' });
+      }
+      g = null;
+      if (e.pointerType === 'mouse') showPreview(row, e.clientX);
+    });
+
+    el.addEventListener('pointercancel', e => {
+      if (!g || e.pointerId !== g.id) return;
+      // The browser took over (usually a scroll): undo any partial drag.
+      if (g.dragging) setValue(row, g.start);
+      g = null;
+    });
+
+    el.addEventListener('pointerleave', e => {
+      if (e.pointerType === 'mouse') clearPreview(row);
+    });
+  }
+
+  function attachKeyboard(row) {
+    row.el.addEventListener('keydown', e => {
+      let next = null;
+      switch (e.key) {
+        case 'ArrowRight': case 'ArrowUp': next = row.value + 1; break;
+        case 'ArrowLeft': case 'ArrowDown': next = row.value - 1; break;
+        case 'PageUp': next = row.value + 3; break;
+        case 'PageDown': next = row.value - 3; break;
+        case 'Home': next = 0; break;
+        case 'End': next = MAX; break;
+        default:
+          if (/^[0-9]$/.test(e.key)) next = Number(e.key);
+      }
+      if (next === null) return;
+      e.preventDefault();
+      setValue(row, next);
+    });
+  }
+
+  // === TOOLS DOCK ===
+  const colorBtn = $('#color-button');
+  const colorDot = $('#color-dot');
+  const popover = $('#color-popover');
+  const swatchesEl = $('#swatches');
+  const clearBtn = $('#clear-button');
+  const themeBtn = $('#theme-button');
+  const darkBtn = $('#dark-toggle');
+  const themeNameEl = $('#theme-name');
+  let customInput = null;
+
+  function updateColorUI() {
+    colorDot.style.setProperty('--fill', currentColor);
+    swatchesEl.querySelectorAll('.swatch').forEach(s => {
+      s.setAttribute('aria-pressed', String(s.dataset.hex === currentColor));
+    });
+    if (customInput) customInput.parentElement.style.setProperty('--c', currentColor);
+  }
+
+  function setColor(hex) {
+    currentColor = hex.toUpperCase();
+    updateColorUI();
+    persist();
+  }
+
+  function buildSwatches() {
+    swatchesEl.textContent = '';
+    F.swatches().forEach(s => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'swatch';
+      b.dataset.hex = s.hex.toUpperCase();
+      b.style.setProperty('--c', s.hex);
+      b.setAttribute('aria-label', s.name);
+      b.title = s.name;
+      b.addEventListener('click', () => { setColor(s.hex); closePopover(true); });
+      swatchesEl.appendChild(b);
+    });
+    const custom = document.createElement('label');
+    custom.className = 'swatch swatch-custom';
+    custom.title = 'Custom color';
+    customInput = document.createElement('input');
+    customInput.type = 'color';
+    customInput.value = currentColor.toLowerCase();
+    customInput.setAttribute('aria-label', 'Custom color');
+    customInput.addEventListener('input', () => setColor(customInput.value));
+    customInput.addEventListener('change', () => { setColor(customInput.value); closePopover(true); });
+    custom.appendChild(customInput);
+    swatchesEl.appendChild(custom);
+    updateColorUI();
+  }
+
+  function onOutsidePointer(e) {
+    if (!popover.contains(e.target) && !colorBtn.contains(e.target)) closePopover(false);
+  }
+  function onPopoverKey(e) {
+    if (e.key === 'Escape') { e.preventDefault(); closePopover(true); }
+  }
+  function openPopover() {
+    popover.hidden = false;
+    colorBtn.setAttribute('aria-expanded', 'true');
+    const current = swatchesEl.querySelector('.swatch[aria-pressed="true"]') || swatchesEl.querySelector('.swatch');
+    if (current) current.focus({ preventScroll: true });
+    document.addEventListener('pointerdown', onOutsidePointer, true);
+    document.addEventListener('keydown', onPopoverKey);
+  }
+  function closePopover(returnFocus) {
+    if (popover.hidden) return;
+    popover.hidden = true;
+    colorBtn.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('pointerdown', onOutsidePointer, true);
+    document.removeEventListener('keydown', onPopoverKey);
+    if (returnFocus) colorBtn.focus({ preventScroll: true });
+  }
+  colorBtn.addEventListener('click', () => (popover.hidden ? openPopover() : closePopover(true)));
+
+  clearBtn.addEventListener('click', () => {
+    const before = rows.map(r => ({ value: r.value, color: r.color }));
+    if (before.every(r => r.value === 0)) {
+      toast('Nothing to clear yet');
+      return;
+    }
+    rows.forEach(r => { r.value = 0; renderRow(r); });
+    persistNow();
+    toast('Ratings cleared', {
+      action: 'Undo',
+      duration: 6000,
+      onAction: () => {
+        rows.forEach((r, i) => { r.value = before[i].value; r.color = before[i].color; renderRow(r); });
+        persistNow();
+      }
+    });
   });
 
-  // === TOUCH-SLIDE FILL (mobile) + CLICK FILL (desktop) ===
-  // Haptic pulse helper — briefly flash a color glow on a box
-  function pulseBox(box, color) {
-    box.style.setProperty('--fill-color', color + '55'); // ~33% opacity via hex alpha
-    box.classList.remove('fill-pulse');
-    // Force reflow to restart animation
-    void box.offsetWidth;
-    box.classList.add('fill-pulse');
-    box.addEventListener('animationend', () => {
-      box.classList.remove('fill-pulse');
+  function updateThemeName() {
+    themeNameEl.textContent = F.themeName();
+  }
+
+  themeBtn.addEventListener('click', () => {
+    const oldDefault = F.defaultFill();
+    F.shuffleTheme();
+    const newDefault = F.defaultFill();
+    // Rows (and the brush) still on the old theme's default follow the new one
+    rows.forEach(r => { if (r.color === oldDefault) r.color = newDefault; });
+    if (currentColor === oldDefault) currentColor = newDefault;
+    rows.forEach(r => renderRow(r));
+    buildSwatches();
+    updateThemeName();
+    persistNow();
+    toast(`Theme: ${F.themeName()}`);
+  });
+
+  function syncDarkButton() { darkBtn.setAttribute('aria-pressed', String(F.dark)); }
+  darkBtn.addEventListener('click', () => F.setDark(!F.dark));
+  F.onDarkChange(syncDarkButton);
+
+  // === SAVE / EXPORT ===
+  let exporterPromise = null;
+  function loadExporter() {
+    if (window.html2canvas) return Promise.resolve(window.html2canvas);
+    if (!exporterPromise) {
+      exporterPromise = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'vendor/html2canvas.min.js';
+        s.async = true;
+        s.onload = () => (window.html2canvas ? resolve(window.html2canvas) : reject(new Error('html2canvas missing')));
+        s.onerror = () => { s.remove(); reject(new Error('Could not load html2canvas')); };
+        document.head.appendChild(s);
+      }).catch(err => {
+        exporterPromise = null; // allow a retry
+        throw err;
+      });
+    }
+    return exporterPromise;
+  }
+  // Fetch the (large) image library only once someone is close to saving.
+  let warmed = false;
+  function warmExporter() {
+    if (warmed) return;
+    warmed = true;
+    const idle = window.requestIdleCallback || (fn => setTimeout(fn, 1200));
+    idle(() => loadExporter().catch(() => { warmed = false; }));
+  }
+
+  function fontsReady(ms) {
+    const ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    return Promise.race([ready, new Promise(resolve => setTimeout(resolve, ms))]);
+  }
+
+  async function renderImage() {
+    const [html2canvas] = await Promise.all([loadExporter(), fontsReady(2500)]);
+    // html2canvas copies pseudo-elements from the live page, so end any
+    // 10/10 shimmer first or it gets frozen mid-sweep in the image.
+    rows.forEach(r => r.el.classList.remove('celebrate'));
+    const node = $('#infograph');
+    const canvas = await html2canvas(node, {
+      scale: 2,
+      backgroundColor: F.palette.page,
+      windowWidth: 1200,
+      windowHeight: 900,
+      logging: false,
+      ignoreElements: el => el.id === 'dock' || el.id === 'toasts' || el.tagName === 'DIALOG',
+      onclone: doc => {
+        doc.documentElement.classList.add('exporting');
+        const meta = doc.getElementById('export-meta');
+        if (meta) meta.textContent = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      }
+    });
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(blob => (blob ? resolve(blob) : reject(new Error('Image encoding failed'))), 'image/png');
+    });
+  }
+
+  function fileName() {
+    const slug = $('#f-name').value
+      .normalize('NFKD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 32);
+    return slug ? `fireside-infograph-${slug}.png` : 'fireside-infograph.png';
+  }
+
+  function download(file) {
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+
+  // Touch devices get a preview with Share (→ Photos, Discord…) and Download.
+  // Share needs a fresh tap, which is why it isn't triggered automatically.
+  const dialog = $('#preview');
+  const previewImg = $('#preview-img');
+  const shareBtn = $('#preview-share');
+  const downloadLink = $('#preview-download');
+  $('#preview-close').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
+
+  function openPreview(file) {
+    if (typeof dialog.showModal !== 'function') { download(file); return; }
+    const url = URL.createObjectURL(file);
+    previewImg.src = url;
+    downloadLink.href = url;
+    downloadLink.download = file.name;
+    const canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+    shareBtn.hidden = !canShare;
+    shareBtn.onclick = async () => {
+      try {
+        await navigator.share({ files: [file], title: 'My Fireside Infograph' });
+      } catch (err) {
+        if (err && err.name !== 'AbortError') toast('Sharing didn’t work here. Try Download instead.');
+      }
+    };
+    dialog.addEventListener('close', () => {
+      URL.revokeObjectURL(url);
+      previewImg.removeAttribute('src');
+      saveBtn.focus({ preventScroll: true });
     }, { once: true });
+    dialog.showModal();
   }
 
-  // Check if a row is fully 10/10 (all 9 boxes filled + bonus maxed)
-  function checkMaxxedRow(boxesContainer) {
-    const rowBoxes = Array.from(boxesContainer.querySelectorAll(".box:not(.bonus-box)"));
-    const bonus = boxesContainer.querySelector(".bonus-box");
-    const allFilled = rowBoxes.every(b => b.classList.contains("filled"));
-    const bonusMaxed = bonus && bonus.classList.contains("maxed");
-    boxesContainer.classList.toggle("maxxed-row", allFilled && bonusMaxed);
+  let saving = false;
+  function setBusy(busy) {
+    saving = busy;
+    saveBtn.classList.toggle('is-busy', busy);
+    saveBtn.setAttribute('aria-busy', String(busy));
+    $('.save-label', saveBtn).textContent = busy ? 'Saving…' : 'Save';
   }
 
-  // Helper: fill boxes up to index in a row
-  function fillRowUpTo(row, upToIdx) {
-    const rowBoxes = Array.from(row.querySelectorAll(".box:not(.bonus-box)"));
-    const fillCount = upToIdx + 1;
-    rowBoxes.forEach((b, j) => {
-      if (j <= upToIdx) {
-        const c = gradientColor(currentColor, j, fillCount);
-        b.style.backgroundColor = c;
-        if (!b.classList.contains("filled")) {
-          b.classList.add("filled");
-          pulseBox(b, currentColor);
-        }
+  saveBtn.addEventListener('click', async () => {
+    if (saving) return;
+    closePopover(false);
+    const missing = missingFields();
+    if (missing.length) {
+      flagMissing(missing);
+      return;
+    }
+    setBusy(true);
+    try {
+      persistNow();
+      const blob = await renderImage();
+      const file = new File([blob], fileName(), { type: 'image/png' });
+      if (coarsePointer.matches) {
+        openPreview(file);
       } else {
-        b.style.backgroundColor = "";
-        b.classList.remove("filled");
+        download(file);
+        toast(`Saved ${file.name}`);
       }
-    });
-    checkMaxxedRow(row);
-  }
-
-  // Helper: clear all boxes in a row
-  function clearRow(row) {
-    const rowBoxes = Array.from(row.querySelectorAll(".box:not(.bonus-box)"));
-    rowBoxes.forEach(b => {
-      b.style.backgroundColor = "";
-      b.classList.remove("filled");
-    });
-    checkMaxxedRow(row);
-  }
-
-  // Track touch state for smooth slide fill
-  let touchRow = null;
-  let lastTouchIdx = -1;
-
-  boxes.forEach((box, idx, arr) => {
-    box.tabIndex = 0;
-
-    // === TOUCH EVENTS — smooth slide to fill/unfill ===
-    box.addEventListener("touchstart", e => {
-      e.preventDefault();
-      const row = box.closest('.boxes');
-      touchRow = row;
-      const rowBoxes = Array.from(row.querySelectorAll(".box:not(.bonus-box)"));
-      const i = rowBoxes.indexOf(box);
-      lastTouchIdx = i;
-      fillRowUpTo(row, i);
-    }, { passive: false });
-
-    box.addEventListener("touchmove", e => {
-      e.preventDefault();
-      if (!touchRow) return;
-      const touch = e.touches[0];
-      const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (!el) return;
-      const targetBox = el.closest('.box:not(.bonus-box)');
-      if (!targetBox) return;
-      const row = targetBox.closest('.boxes');
-      if (row !== touchRow) return;
-      const rowBoxes = Array.from(row.querySelectorAll(".box:not(.bonus-box)"));
-      const i = rowBoxes.indexOf(targetBox);
-      if (i === -1 || i === lastTouchIdx) return;
-      lastTouchIdx = i;
-      fillRowUpTo(row, i);
-    }, { passive: false });
-
-    box.addEventListener("touchend", () => {
-      touchRow = null;
-      lastTouchIdx = -1;
-    });
-
-    box.addEventListener("touchcancel", () => {
-      touchRow = null;
-      lastTouchIdx = -1;
-    });
-
-    // === CLICK (desktop) — tap fills all up to clicked box ===
-    box.addEventListener("click", () => {
-      const row = box.closest('.boxes');
-      const rowBoxes = Array.from(row.querySelectorAll(".box:not(.bonus-box)"));
-      const i = rowBoxes.indexOf(box);
-      // If clicking the same last filled box, toggle off
-      const currentlyFilled = rowBoxes.filter(b => b.classList.contains("filled")).length;
-      if (currentlyFilled === i + 1) {
-        clearRow(row);
-      } else {
-        fillRowUpTo(row, i);
-      }
-    });
-
-    box.addEventListener("keydown", e => {
-      if (e.key === " " || e.key === "Enter") { e.preventDefault(); box.click(); }
-      if (e.key === "ArrowRight") { e.preventDefault(); (arr[idx+1] || arr[0]).focus(); }
-      if (e.key === "ArrowLeft")  { e.preventDefault(); (arr[idx-1] || arr[arr.length-1]).focus(); }
-    });
+    } catch (err) {
+      console.error(err);
+      toast('Couldn’t create your image. Check your connection and try again.', { duration: 5000 });
+    } finally {
+      setBusy(false);
+    }
   });
 
-  // === BONUS BOX ===
-  bonusBoxes.forEach(bonus => {
-    bonus.tabIndex = 0;
-    bonus.addEventListener("click", () => {
-      const isMaxed = bonus.classList.toggle("maxed");
-      // Use `background` (not backgroundColor) to override the hatched pattern
-      bonus.style.background = isMaxed ? currentColor : "";
-      checkMaxxedRow(bonus.closest('.boxes'));
-    });
-    bonus.addEventListener("keydown", e => {
-      if (e.key === " " || e.key === "Enter") { e.preventDefault(); bonus.click(); }
-    });
-  });
-
-  // === DARK MODE ===
-  darkModeToggle.addEventListener("click", () => {
-    const dm = document.body.classList.toggle("dark-mode");
-    darkModeToggle.setAttribute("aria-pressed", dm);
-  });
-
-  // === SAVE AS IMAGE ===
-  saveButton.addEventListener("click", () => {
-    if (saveButton.disabled) return;
-    const container = document.getElementById("infograph-container");
-    const controls  = document.getElementById("controls-bar");
-
-    controls.style.display = "none";
-    container.classList.add("exporting");
-
-    requestAnimationFrame(() => {
-      document.fonts.ready.then(() =>
-        html2canvas(container, {
-          scale: 2, useCORS: true,
-          width: 1200, windowWidth: 1200
-        })
-        .then(canvas => {
-          controls.style.display = "";
-          container.classList.remove("exporting");
-          const link = document.createElement("a");
-          link.download = "fireside-infograph.png";
-          link.href = canvas.toDataURL("image/png");
-          link.click();
-        })
-        .catch(err => {
-          controls.style.display = "";
-          container.classList.remove("exporting");
-          console.error(err);
-        })
-      );
-    });
-  });
-});
+  // === INIT ===
+  buildSwatches();
+  updateThemeName();
+  syncDarkButton();
+  updateSaveState();
+})();

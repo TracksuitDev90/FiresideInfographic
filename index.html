@@ -2,172 +2,145 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Fireside Infograph</title>
+  <meta name="description" content="Rate yourself out of 10 across ten categories, then save a card to share with the fireside." />
+  <meta name="theme-color" content="#F3F2EF" />
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Fireside Infograph" />
+  <meta property="og:title" content="Fireside Infograph" />
+  <meta property="og:description" content="Rate yourself out of 10 across ten categories, then save a card to share with the fireside." />
+  <meta property="og:url" content="https://tracksuitdev90.github.io/FiresideInfographic/" />
+  <meta property="og:image" content="https://tracksuitdev90.github.io/FiresideInfographic/assets/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Fireside Infograph: a campfire with a row of ten rating boxes" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="preload" href="fonts/poppins-900-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/poppins-600-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="style.css" />
+  <script src="theme.js"></script>
+  <script src="script.js" defer></script>
 </head>
 <body>
-  <h2 class="page-title">FIRESIDE INFOGRAPH.</h2>
+  <main class="page">
+    <div id="infograph" class="infograph">
+      <h1 class="page-title">Fireside Infograph.</h1>
 
-  <div id="infograph-container">
-    <!-- 1) INPUT FIELDS -->
-    <div id="input-fields">
-      <div class="styled-table">
-        <div class="field">
-          <label for="user-name">Name or Discord</label>
-          <input type="text" id="user-name" autocomplete="name" placeholder="Enter name..." />
+      <!-- 1) ABOUT YOU -->
+      <section class="profile" id="profile" aria-label="About you">
+        <div class="field field-name">
+          <label for="f-name">Name or Discord</label>
+          <input class="input" id="f-name" type="text" maxlength="32" autocomplete="nickname"
+                 autocapitalize="off" spellcheck="false" enterkeyhint="next" placeholder="Enter name…" />
         </div>
-        <div class="field">
-          <label for="age">Age</label>
-          <div class="picker-wrap" data-picker="age">
-            <input type="text" id="age" readonly placeholder="--" autocomplete="off" />
-            <div class="picker-dropdown"></div>
+        <div class="field field-gender">
+          <label for="f-gender">Gender</label>
+          <input class="input" id="f-gender" type="text" maxlength="24" autocomplete="sex"
+                 enterkeyhint="next" placeholder="Enter gender…" />
+        </div>
+        <div class="field field-orientation">
+          <label for="f-orientation">Orientation</label>
+          <input class="input" id="f-orientation" type="text" maxlength="24" autocomplete="off"
+                 enterkeyhint="next" placeholder="Enter orientation…" />
+        </div>
+        <div class="field field-age">
+          <label for="f-age">Age</label>
+          <div class="select-wrap">
+            <select class="input" id="f-age" required>
+              <option value="" disabled selected hidden>Select</option>
+            </select>
+            <svg class="icon select-chevron" viewBox="0 0 24 24" aria-hidden="true" data-html2canvas-ignore><path d="m6 9 6 6 6-6"/></svg>
           </div>
         </div>
-        <div class="field">
-          <label for="biological-sex">Gender</label>
-          <input type="text" id="biological-sex" autocomplete="sex" placeholder="Enter gender..." />
-        </div>
-        <div class="field">
-          <label for="sexual-orientation">Orientation</label>
-          <input type="text" id="sexual-orientation" placeholder="Enter orientation..." />
-        </div>
-        <div class="field">
-          <label for="mbti">Personality Type</label>
-          <div class="picker-wrap" data-picker="mbti">
-            <input type="text" id="mbti" readonly placeholder="--" autocomplete="off" />
-            <div class="picker-dropdown"></div>
+        <div class="field field-type">
+          <label for="f-type">Personality type</label>
+          <div class="select-wrap">
+            <select class="input" id="f-type" required>
+              <option value="" disabled selected hidden>Select</option>
+            </select>
+            <svg class="icon select-chevron" viewBox="0 0 24 24" aria-hidden="true" data-html2canvas-ignore><path d="m6 9 6 6 6-6"/></svg>
           </div>
         </div>
-      </div>
+        <p class="theme-name" id="theme-name"></p>
+      </section>
+
+      <!-- 2) RATINGS (rows are built by script.js from its CATEGORIES list) -->
+      <section class="ratings" id="ratings" aria-label="Ratings"></section>
+
+      <!-- Only shown in the saved image -->
+      <footer class="export-footer" aria-hidden="true">
+        <span>Fireside Infograph</span>
+        <span id="export-meta"></span>
+      </footer>
     </div>
 
-    <!-- 2) CONTROLS -->
-    <div id="controls-bar">
-      <div id="color-palette">
-        <label for="color-picker" class="color-picker-label">Fill Color</label>
-        <input id="color-picker" type="color" value="#FF6B6B" />
-      </div>
+    <noscript>
+      <p class="noscript">Fireside Infograph needs JavaScript to fill in your ratings and save your card.</p>
+    </noscript>
 
-      <span class="controls-sep" aria-hidden="true"></span>
+    <!-- 3) TOOLS DOCK -->
+    <nav class="dock" id="dock" aria-label="Tools">
+      <div class="dock-bar">
+        <div class="dock-color">
+          <button type="button" class="dock-btn" id="color-button" aria-label="Fill color"
+                  aria-haspopup="true" aria-expanded="false" aria-controls="color-popover">
+            <span class="color-dot" id="color-dot" aria-hidden="true"></span>
+            <span class="dock-label" aria-hidden="true">Color</span>
+          </button>
+          <div class="color-popover" id="color-popover" role="group" aria-label="Fill color" hidden>
+            <p class="popover-title">Fill color</p>
+            <div class="swatches" id="swatches"></div>
+          </div>
+        </div>
 
-      <div class="controls-actions">
-        <button id="clear-button" type="button" aria-label="Clear filled boxes">clear</button>
-
-        <button id="dark-mode-toggle"
-                type="button"
-                aria-label="Toggle dark mode"
-                aria-pressed="false">
-          <span class="label-moon">dark</span>
-          <span class="label-sun">light</span>
+        <button type="button" class="dock-btn" id="clear-button" aria-label="Clear ratings">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 3.5v5h5"/></svg>
+          <span class="dock-label" aria-hidden="true">Clear</span>
         </button>
 
-        <div class="tooltip-wrapper">
-          <button id="save-button"
-                  type="button"
-                  aria-label="Save infographic as image"
-                  disabled>save</button>
-          <span class="tooltip-text">Fill in all fields first</span>
-        </div>
+        <button type="button" class="dock-btn" id="theme-button" aria-label="Shuffle theme">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h3.2c4.3 0 6.3 10 10.6 10H21"/><path d="M3 17h3.2c4.3 0 6.3-10 10.6-10H21"/><path d="m18 4 3 3-3 3"/><path d="m18 14 3 3-3 3"/></svg>
+          <span class="dock-label" aria-hidden="true">Theme</span>
+        </button>
+
+        <button type="button" class="dock-btn" id="dark-toggle" aria-label="Dark mode" aria-pressed="false">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.3 8.3 0 1 1 9.4 4a6.6 6.6 0 0 0 10.6 10.6z"/></svg>
+          <span class="dock-label" aria-hidden="true">Dark</span>
+        </button>
+
+        <button type="button" class="dock-btn dock-save" id="save-button">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10.5 5 5 5-5"/><path d="M5 20h14"/></svg>
+          <span class="spinner" aria-hidden="true"></span>
+          <span class="save-label">Save</span>
+        </button>
+      </div>
+    </nav>
+  </main>
+
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+  <dialog class="preview" id="preview" aria-labelledby="preview-title">
+    <div class="preview-card">
+      <div class="preview-head">
+        <h2 class="preview-title" id="preview-title">Your infograph is ready</h2>
+        <button type="button" class="preview-close" id="preview-close" aria-label="Close">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <img class="preview-img" id="preview-img" alt="Preview of your saved infograph" />
+      <p class="preview-hint">Tip: press and hold the image to save it to your photos.</p>
+      <div class="preview-actions">
+        <button type="button" class="btn btn-primary" id="preview-share">Share</button>
+        <a class="btn btn-secondary" id="preview-download" download>Download</a>
       </div>
     </div>
-
-    <!-- 3) BOX GRID -->
-    <div id="box-container">
-      <div class="box-row">
-        <h3 class="category" data-desc="How smart are you compared to the average person?">Intelligence</h3>
-        <div class="boxes">
-          <div class="box" title="1/10"></div><div class="box" title="2/10"></div><div class="box" title="3/10"></div>
-          <div class="box" title="4/10"></div><div class="box" title="5/10"></div><div class="box" title="6/10"></div>
-          <div class="box" title="7/10"></div><div class="box" title="8/10"></div><div class="box" title="9/10"></div>
-          <div class="box bonus-box" title="10/10"></div>
-        </div>
-      </div>
-      <div class="box-row">
-        <h3 class="category" data-desc="How wealthy are you compared to the average person?">Wealth</h3>
-        <div class="boxes">
-          <div class="box" title="1/10"></div><div class="box" title="2/10"></div><div class="box" title="3/10"></div>
-          <div class="box" title="4/10"></div><div class="box" title="5/10"></div><div class="box" title="6/10"></div>
-          <div class="box" title="7/10"></div><div class="box" title="8/10"></div><div class="box" title="9/10"></div>
-          <div class="box bonus-box" title="10/10"></div>
-        </div>
-      </div>
-      <div class="box-row">
-        <h3 class="category" data-desc="How's your sex life compared to the average person?">Sex Life</h3>
-        <div class="boxes">
-          <div class="box" title="1/10"></div><div class="box" title="2/10"></div><div class="box" title="3/10"></div>
-          <div class="box" title="4/10"></div><div class="box" title="5/10"></div><div class="box" title="6/10"></div>
-          <div class="box" title="7/10"></div><div class="box" title="8/10"></div><div class="box" title="9/10"></div>
-          <div class="box bonus-box" title="10/10"></div>
-        </div>
-      </div>
-      <div class="box-row">
-        <h3 class="category" data-desc="How attractive are you compared to the average person?">Physical Appearance</h3>
-        <div class="boxes">
-          <div class="box" title="1/10"></div><div class="box" title="2/10"></div><div class="box" title="3/10"></div>
-          <div class="box" title="4/10"></div><div class="box" title="5/10"></div><div class="box" title="6/10"></div>
-          <div class="box" title="7/10"></div><div class="box" title="8/10"></div><div class="box" title="9/10"></div>
-          <div class="box bonus-box" title="10/10"></div>
-        </div>
-      </div>
-      <div class="box-row">
-        <h3 class="category" data-desc="How likeable is your personality compared to the average person?">Personality</h3>
-        <div class="boxes">
-          <div class="box" title="1/10"></div><div class="box" title="2/10"></div><div class="box" title="3/10"></div>
-          <div class="box" title="4/10"></div><div class="box" title="5/10"></div><div class="box" title="6/10"></div>
-          <div class="box" title="7/10"></div><div class="box" title="8/10"></div><div class="box" title="9/10"></div>
-          <div class="box bonus-box" title="10/10"></div>
-        </div>
-      </div>
-      <div class="box-row">
-        <h3 class="category" data-desc="How confident are you compared to the average person?">Confidence</h3>
-        <div class="boxes">
-          <div class="box" title="1/10"></div><div class="box" title="2/10"></div><div class="box" title="3/10"></div>
-          <div class="box" title="4/10"></div><div class="box" title="5/10"></div><div class="box" title="6/10"></div>
-          <div class="box" title="7/10"></div><div class="box" title="8/10"></div><div class="box" title="9/10"></div>
-          <div class="box bonus-box" title="10/10"></div>
-        </div>
-      </div>
-      <div class="box-row">
-        <h3 class="category" data-desc="How active is your social life compared to the average person?">Social Life</h3>
-        <div class="boxes">
-          <div class="box" title="1/10"></div><div class="box" title="2/10"></div><div class="box" title="3/10"></div>
-          <div class="box" title="4/10"></div><div class="box" title="5/10"></div><div class="box" title="6/10"></div>
-          <div class="box" title="7/10"></div><div class="box" title="8/10"></div><div class="box" title="9/10"></div>
-          <div class="box bonus-box" title="10/10"></div>
-        </div>
-      </div>
-      <div class="box-row">
-        <h3 class="category" data-desc="How healthy and fit are you compared to the average person?">Health / Fitness</h3>
-        <div class="boxes">
-          <div class="box" title="1/10"></div><div class="box" title="2/10"></div><div class="box" title="3/10"></div>
-          <div class="box" title="4/10"></div><div class="box" title="5/10"></div><div class="box" title="6/10"></div>
-          <div class="box" title="7/10"></div><div class="box" title="8/10"></div><div class="box" title="9/10"></div>
-          <div class="box bonus-box" title="10/10"></div>
-        </div>
-      </div>
-      <div class="box-row">
-        <h3 class="category" data-desc="How happy are you compared to the average person?">Happiness</h3>
-        <div class="boxes">
-          <div class="box" title="1/10"></div><div class="box" title="2/10"></div><div class="box" title="3/10"></div>
-          <div class="box" title="4/10"></div><div class="box" title="5/10"></div><div class="box" title="6/10"></div>
-          <div class="box" title="7/10"></div><div class="box" title="8/10"></div><div class="box" title="9/10"></div>
-          <div class="box bonus-box" title="10/10"></div>
-        </div>
-      </div>
-      <div class="box-row">
-        <h3 class="category" data-desc="How cringey are you compared to the average person?">Cringiness</h3>
-        <div class="boxes">
-          <div class="box" title="1/10"></div><div class="box" title="2/10"></div><div class="box" title="3/10"></div>
-          <div class="box" title="4/10"></div><div class="box" title="5/10"></div><div class="box" title="6/10"></div>
-          <div class="box" title="7/10"></div><div class="box" title="8/10"></div><div class="box" title="9/10"></div>
-          <div class="box bonus-box" title="10/10"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="script.js"></script>
+  </dialog>
 </body>
 </html>
